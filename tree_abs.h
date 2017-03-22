@@ -9,11 +9,11 @@ typedef struct tree {
   void **sons;
 } *tree;
 
-enum type_var {T_bool = 0, T_int, T_array};
+enum type_variable {T_bool = 0, T_int, T_array};
 
 typedef struct type_var {
   int depth;
-  enum type_var *type;
+  enum type_variable *type;
 } *type_var;
 
 typedef struct var {
@@ -56,15 +56,15 @@ extern call call_alloc();
 extern new_array new_array_alloc();
 
 extern tree init_tree(enum define def);
-extern type_var init_type_var(enum type_var type);
+extern type_var init_type_var(enum type_variable type);
 extern var init_var(char* name, type_var type);
 extern sign init_sign(char* name, tree argt, type_var type);
 extern val init_val(enum type_value def, int val, char* name);
 extern call init_call(char* name, tree args);
 extern new_array init_new_array(tree type, tree size);
 
-extern int add_type(type_var tp, enum type_var type);
-extern int add_son(tree pere, void son);
+extern int add_type(type_var tp, enum type_variable type);
+extern int add_son(tree pere, void *son);
 
 extern void afficher(tree s);
 
