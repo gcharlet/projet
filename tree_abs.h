@@ -66,4 +66,13 @@ extern new_array init_new_array(tree type, tree size);
 extern int add_type(type_var tp, enum type_var type);
 extern int add_son(tree pere, void son);
 
+extern void afficher(tree s);
+
+extern void free_tree(tree s);
+extern void free_type_var(type_var tp);
+extern void free_var(var v);
+extern void free_sign(sign s);
+extern void free_call(call c);
+extern void free_val(val v);
+
 #endif
