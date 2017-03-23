@@ -15,7 +15,7 @@ all: ppascal
 
 clean:
 	rm ppascal.tab* ppascal.l.c
-	rm *.o *~
+	rm *.o 
 
 tree_abs.o: tree_abs.c tree_abs.h
 ppascal.l.o: ppascal.l.c ppascal.tab.h

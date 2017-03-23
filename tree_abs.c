@@ -1,3 +1,4 @@
+#define _XOPEN_SOURCE 500
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,10 +22,6 @@ sign sign_alloc(){
 
 val val_alloc(){
   return malloc(sizeof(struct val));
-}
-
-call call_alloc(){
-  return malloc(sizeof(struct call));
 }
 
 
@@ -67,6 +64,7 @@ val init_val(enum type_value def, int value, char* name){
     case Bool :
     case Int :
       v->param.val = value;
+      break;
     case Var :
       v->param.name = strdup(name);
       break;
@@ -74,16 +72,9 @@ val init_val(enum type_value def, int value, char* name){
   return v;
 }
 
-call init_call(char* name, tree args){
-  call c = call_alloc();
-  c->name = strdup(name);
-  c->args = args;
-  return c;
-}
-
 int add_type(type_var tp, enum type_variable type){
   tp->depth += 1;
-  tp->type = realloc(sizeof(enum type_variable) * tp->depth);
+  tp->type = realloc(tp->type, sizeof(enum type_variable) * tp->depth);
   for(int i = tp->depth-1; i > 0; i--)
     tp->type[i] = tp->type[i-1];
   tp->type[0] = type;
@@ -96,11 +87,14 @@ int add_son(tree pere, void *son){
     case Sk:
       return EXIT_FAILURE;
     case Not:
-    case Call:
     case Val:
       if(pere->nb_sons == 1)
 	return EXIT_FAILURE;
       break;
+    case Call:
+    case Af:
+    case AfTab:
+    case NewAr:
     case Pl:
     case Mo:
     case Mu:
@@ -108,9 +102,7 @@ int add_son(tree pere, void *son){
     case Lt:
     case Eq:
     case And:
-    case NewAr:
     case Se:
-    case Af:
     case Wh:
       if(pere->nb_sons == 2)
 	return EXIT_FAILURE;
@@ -122,13 +114,15 @@ int add_son(tree pere, void *son){
 	return EXIT_FAILURE;
       break;
     }
+  if(pere->nb_sons == 0 && (pere->def == Af || pere->def == Call || pere->def == Tab))
+    son = strdup(son);
   pere->nb_sons += 1;
-  pere->sons = realloc(sizeof(void *) * pere->nb_sons);
+  pere->sons = realloc(pere->sons, sizeof(void *) * pere->nb_sons);
   pere->sons[pere->nb_sons - 1] = son;
   return EXIT_SUCCESS;
 }
 
-char *list_def[] = {"Mp", "Pl", "Mo", "Mu", "Or", "Lt", "Eq", "And", "Not", "Call", "NewAr", "Tab", "Se", "Af", "Sk", "IfThEl", "Wh", "Largs", "Lvart", "Func", "List_function_procedure", "Val"};
+char *list_def[] = {"Mp", "Pl", "Mo", "Mu", "Or", "Lt", "Eq", "And", "Not", "Call", "NewAr", "Tab", "Se", "Af", "Af", "Sk", "IfThEl", "Wh", "Largs", "Lvart", "Func", "List_function_procedure", "Val"};
 
 void afficher(tree s){
   int i = 0;
@@ -141,16 +135,21 @@ void afficher(tree s){
 	printf("\n");
       }
       break;
+    case Af:
+      printf("%s %s ", list_def[s->def], (char*)s->sons[0]);
+      i = 1;
+      break;
     case Call:
-      afficher_call(s->sons[0]);
+      printf("%s ", (char*)s->sons[0]);
       i = 1;
       break;
     case NewAr:
+      printf("%s ", list_def[s->def]);
       afficher_type_var(s->sons[0]);
       i = 1;
       break;
     case Tab:
-      printf("%s", s->sons[0]);
+      printf("%s", (char*)s->sons[0]);
       for(i = 1; i < s->nb_sons; i++){
 	printf("[ ");
 	afficher(s->sons[i]);
@@ -166,24 +165,24 @@ void afficher(tree s){
       printf("\nFunc ");
       afficher_sign(s->sons[0]);
       printf("\n");
-      for(i = 1; i < s->nb_sons; i++){
-	afficher(s->sons[i]);
-	printf("\n");
-      }
+      afficher(s->sons[1]);
+      printf("\n");
+      afficher(s->sons[2]);
+      i = 3;
       break;
     case Lvart:
       printf("List_vart { ");
       for(i; i < s->nb_sons; i++){
 	afficher_var(s->sons[i]);
       }
-      printf("}");
+      printf("} ");
       break;
     case Largs:
       printf("List_args { ");
       for(i; i < s->nb_sons; i++){
-	printf("%s ", s->sons[i]);
+	afficher(s->sons[i]);
       }
-      printf("}");
+      printf("} ");
       break;
     default :
       printf("%s ", list_def[s->def]);
@@ -195,19 +194,19 @@ void afficher(tree s){
 
 char *list_type[] = {"T_bool", "T_int", "T_array"};
 void afficher_type_var(type_var t){
-  printf(": ");
   for(int i = 0; i < t->depth; i++)
-    printf("%s ", list_type[s->type[i]]);
+    printf("%s ", list_type[t->type[i]]);
 }
 
 void afficher_var(var v){
-  printf("%s ", v->name);
+  printf("%s : ", v->name);
   afficher_type_var(v->type);
 }
 
 void afficher_sign(sign s){
   printf("%s ", s->name);
   afficher(s->argt);
+  printf(": ");
   if(s->type != NULL)
     afficher_type_var(s->type);
 }
@@ -223,21 +222,15 @@ void afficher_val(val v){
       break;
     case Bool:
       if(v->param.val == 0)
-	printf("false");
+	printf("false ");
       else
-	printf("true");
+	printf("true ");
       break;
     }
-}
-
-void afficher_call(call c){
-  printf("%s ", c->name);
-  afficher(c->args);
 }
 
 void free_tree(tree s);
 void free_type_var(type_var tp);
 void free_var(var v);
 void free_sign(sign s);
-void free_call(call c);
 void free_val(val v);

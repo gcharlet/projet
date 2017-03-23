@@ -1,7 +1,9 @@
 %option noyywrap
 %{
-#include "ppascal.tab.h"
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include "ppascal.tab.h"
 %}
 
 Nombre 0|[1-9][0-9]*
@@ -13,7 +15,7 @@ Nom [A-Za-z][A-Za-z0-9\_]*
 "array of" {return(AR);}
 "new array of" {return(NEWAR);}
 "defun" {return(FUNC);}
-"depro" {return(PROC);}
+"defpro" {return(PROC);}
 "var" {return(VAR);}
 ":=" {return(AF);}
 "+" {return(PL);}
@@ -31,6 +33,8 @@ Nom [A-Za-z][A-Za-z0-9\_]*
 "else" {return(EL);}
 "skip" {return(SK);}
 ";" {return(SE);}
+"{" {return('{');}
+"}" {return('}');}
 "(" {return('(');}
 ")" {return(')');}
 "[" {return('[');}
