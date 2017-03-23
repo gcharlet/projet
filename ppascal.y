@@ -5,7 +5,7 @@
   #include "tree_abs.h"
   
   int yyerror(char *s);
-  int yylex(void);
+  int yylex();
   tree s;
 %}
 

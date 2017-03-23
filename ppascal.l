@@ -1,3 +1,4 @@
+%option noyywrap
 %{
 #include "ppascal.tab.h"
 #include <string.h>
@@ -39,7 +40,7 @@ Nom [A-Za-z][A-Za-z0-9\_]*
 "true" {return(TRUE);}
 "false" {return(FALSE);}
 {Nombre} {yylval.val = atoi(yytext); return(I);}
-{Nom} {yylval.str = malloc(yyleng * sizeof(char)); strcpy(yylval.str, yytext); return(V);}
+{Nom} {yylval.str = strdup(yytext); return(V);}
 [ \n\t] {}
 . {}
 %%
