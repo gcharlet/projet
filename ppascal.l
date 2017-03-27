@@ -1,4 +1,3 @@
-%option noyywrap
 %{
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,43 +7,46 @@
 
 Nombre 0|[1-9][0-9]*
 Nom [A-Za-z][A-Za-z0-9\_]*
+%s COMM
 
 %%
-"boolean" {return(BOO);}
-"integer" {return(INT);}
-"array of" {return(AR);}
-"new array of" {return(NEWAR);}
-"defun" {return(FUNC);}
-"defpro" {return(PROC);}
-"var" {return(VAR);}
-":=" {return(AF);}
-"+" {return(PL);}
-"-" {return(MO);}
-"*" {return(MU);}
-"<=" {return(LT);}
-"=" {return(EQ);}
-"and" {return(AND);}
-"or" {return(OR);}
-"not" {return(NOT);}
-"while" {return(WH);}
-"do" {return(DO);}
-"if" {return(IF);}
-"then" {return(TH);}
-"else" {return(EL);}
-"skip" {return(SK);}
-";" {return(SE);}
-"{" {return('{');}
-"}" {return('}');}
-"(" {return('(');}
-")" {return(')');}
-"[" {return('[');}
-"]" {return(']');}
-":" {return(':');}
-"," {return(',');}
-"true" {return(TRUE);}
-"false" {return(FALSE);}
-{Nombre} {yylval.val = atoi(yytext); return(I);}
-{Nom} {yylval.str = strdup(yytext); return(V);}
+<INITIAL>"/*" {BEGIN COMM;}
+<COMM>.|\n {}
+<COMM>"*/" {BEGIN INITIAL;}
+<INITIAL>"boolean" {return(BOO);}
+<INITIAL>"integer" {return(INT);}
+<INITIAL>"array of" {return(AR);}
+<INITIAL>"new array of" {return(NEWAR);}
+<INITIAL>"defun" {return(FUNC);}
+<INITIAL>"defpro" {return(PROC);}
+<INITIAL>"var" {return(VAR);}
+<INITIAL>":=" {return(AF);}
+<INITIAL>"+" {return(PL);}
+<INITIAL>"-" {return(MO);}
+<INITIAL>"*" {return(MU);}
+<INITIAL>"<" {return(LT);}
+<INITIAL>"=" {return(EQ);}
+<INITIAL>"and" {return(AND);}
+<INITIAL>"or" {return(OR);}
+<INITIAL>"not" {return(NOT);}
+<INITIAL>"while" {return(WH);}
+<INITIAL>"do" {return(DO);}
+<INITIAL>"if" {return(IF);}
+<INITIAL>"then" {return(TH);}
+<INITIAL>"else" {return(EL);}
+<INITIAL>"skip" {return(SK);}
+<INITIAL>";" {return(SE);}
+<INITIAL>"{" {return('{');}
+<INITIAL>"}" {return('}');}
+<INITIAL>"(" {return('(');}
+<INITIAL>")" {return(')');}
+<INITIAL>"[" {return('[');}
+<INITIAL>"]" {return(']');}
+<INITIAL>":" {return(':');}
+<INITIAL>"," {return(',');}
+<INITIAL>"true" {return(TRUE);}
+<INITIAL>"false" {return(FALSE);}
+<INITIAL>{Nombre} {yylval.val = atoi(yytext); return(I);}
+<INITIAL>{Nom} {yylval.str = strdup(yytext); return(V);}
 [ \n\t] {}
-. {}
 %%

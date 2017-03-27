@@ -129,10 +129,10 @@ void afficher(tree s){
   switch (s->def)
     {
     case Mp:
-      printf("MP\n");
       for(i; i < s->nb_sons; i++){
+	printf("#######################\n");
 	afficher(s->sons[i]);
-	printf("\n");
+	printf("\n#######################\n\n");
       }
       break;
     case Af:
@@ -162,7 +162,7 @@ void afficher(tree s){
       i = 1;
       break;
     case Func:
-      printf("\nFunc ");
+      printf("\n\nFunc ");
       afficher_sign(s->sons[0]);
       printf("\n");
       afficher(s->sons[1]);
@@ -206,9 +206,10 @@ void afficher_var(var v){
 void afficher_sign(sign s){
   printf("%s ", s->name);
   afficher(s->argt);
-  printf(": ");
-  if(s->type != NULL)
+  if(s->type != NULL){
+    printf(": ");
     afficher_type_var(s->type);
+  }
 }
 
 void afficher_val(val v){
