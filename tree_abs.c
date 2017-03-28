@@ -8,8 +8,8 @@ tree tree_alloc(){
   return malloc(sizeof(struct tree));
 }
 
-type_var type_var_alloc(){
-  return malloc(sizeof(struct type_var));
+type_exp type_exp_alloc(){
+  return malloc(sizeof(struct type_exp));
 }
 
 var var_alloc(){
@@ -30,25 +30,26 @@ tree init_tree(enum define def){
   s->def = def;
   s->nb_sons = 0;
   s->sons = NULL;
+  s->type = NULL;
   return s;
 }
 
-type_var init_type_var(enum type_variable type){
-  type_var t = type_var_alloc();
+type_exp init_type_exp(enum type_expression type){
+  type_exp t = type_exp_alloc();
   t->depth = 1;
-  t->type = malloc(sizeof(enum type_variable));
+  t->type = malloc(sizeof(enum type_expression));
   t->type[0] = type;
   return t;
 }
 
-var init_var(char* name, type_var type){
+var init_var(char* name, type_exp type){
   var c = var_alloc();
   c->name = strdup(name);
   c->type = type;
   return c;
 }
 
-sign init_sign(char* name, tree argt, type_var type){
+sign init_sign(char* name, tree argt, type_exp type){
   sign s = sign_alloc();
   s->name = strdup(name);
   s->argt = argt;
@@ -72,9 +73,9 @@ val init_val(enum type_value def, int value, char* name){
   return v;
 }
 
-int add_type(type_var tp, enum type_variable type){
+int add_type(type_exp tp, enum type_expression type){
   tp->depth += 1;
-  tp->type = realloc(tp->type, sizeof(enum type_variable) * tp->depth);
+  tp->type = realloc(tp->type, sizeof(enum type_expression) * tp->depth);
   for(int i = tp->depth-1; i > 0; i--)
     tp->type[i] = tp->type[i-1];
   tp->type[0] = type;
@@ -124,14 +125,14 @@ int add_son(tree pere, void *son){
 
 char *list_def[] = {"Mp", "Pl", "Mo", "Mu", "Or", "Lt", "Eq", "And", "Not", "Call", "NewAr", "Tab", "Se", "Af", "Af", "Sk", "IfThEl", "Wh", "Largs", "Lvart", "Func", "List_function_procedure", "Val"};
 
-void afficher(tree s){
+void display_tree(tree s){
   int i = 0;
   switch (s->def)
     {
     case Mp:
       for(i; i < s->nb_sons; i++){
 	printf("#######################\n");
-	afficher(s->sons[i]);
+	display_tree(s->sons[i]);
 	printf("\n#######################\n\n");
       }
       break;
@@ -145,42 +146,42 @@ void afficher(tree s){
       break;
     case NewAr:
       printf("%s ", list_def[s->def]);
-      afficher_type_var(s->sons[0]);
+      display_type_exp(s->sons[0]);
       i = 1;
       break;
     case Tab:
       printf("%s", (char*)s->sons[0]);
       for(i = 1; i < s->nb_sons; i++){
 	printf("[ ");
-	afficher(s->sons[i]);
+	display_tree(s->sons[i]);
 	printf("]");
       }
       printf(" ");
       break;
     case Val:
-      afficher_val(s->sons[0]);
+      display_val(s->sons[0]);
       i = 1;
       break;
     case Func:
       printf("\n\nFunc ");
-      afficher_sign(s->sons[0]);
+      display_sign(s->sons[0]);
       printf("\n");
-      afficher(s->sons[1]);
+      display_tree(s->sons[1]);
       printf("\n");
-      afficher(s->sons[2]);
+      display_tree(s->sons[2]);
       i = 3;
       break;
     case Lvart:
       printf("List_vart { ");
       for(i; i < s->nb_sons; i++){
-	afficher_var(s->sons[i]);
+	display_var(s->sons[i]);
       }
       printf("} ");
       break;
     case Largs:
       printf("List_args { ");
       for(i; i < s->nb_sons; i++){
-	afficher(s->sons[i]);
+	display_tree(s->sons[i]);
       }
       printf("} ");
       break;
@@ -188,31 +189,31 @@ void afficher(tree s){
       printf("%s ", list_def[s->def]);
     }
   for(i; i < s->nb_sons; i++){
-    afficher(s->sons[i]);
+    display_tree(s->sons[i]);
   }
 }
 
 char *list_type[] = {"T_bool", "T_int", "T_array"};
-void afficher_type_var(type_var t){
+void display_type_exp(type_exp t){
   for(int i = 0; i < t->depth; i++)
     printf("%s ", list_type[t->type[i]]);
 }
 
-void afficher_var(var v){
+void display_var(var v){
   printf("%s : ", v->name);
-  afficher_type_var(v->type);
+  display_type_exp(v->type);
 }
 
-void afficher_sign(sign s){
+void display_sign(sign s){
   printf("%s ", s->name);
-  afficher(s->argt);
+  display_tree(s->argt);
   if(s->type != NULL){
     printf(": ");
-    afficher_type_var(s->type);
+    display_type_exp(s->type);
   }
 }
 
-void afficher_val(val v){
+void display_val(val v){
   switch (v->def)
     {
     case Int:
@@ -230,8 +231,209 @@ void afficher_val(val v){
     }
 }
 
+void error_analize(char* s, tree exp){
+  printf("TYPEERROR: %s : ", s);
+  display_tree(exp);
+  printf("\n");
+}
+
+type_exp type_def_var(tree s, char* name, tree func){
+  if(s->def != Lvart)
+    return NULL;
+  if(func != NULL){
+    if(strcmp(((sign)func->sons[0])->name, name) == 0)
+      return ((sign)func->sons[0])->type;
+    for(int i = 0; i < ((sign)func->sons[0])->argt->nb_sons; i++){
+      var tmp = ((sign)func->sons[0])->argt->sons[i];
+      if(strcmp(tmp->name, name) == 0)
+	return tmp->type;
+    }
+    for(int i = 0; i < ((tree)func->sons[1])->nb_sons; i++){
+      var tmp = ((tree)func->sons[1])->sons[i];
+      if(strcmp(tmp->name, name) == 0)
+	return tmp->type;
+    }
+  }
+  for(int i = 0; i < s->nb_sons; i++){
+    var tmp = s->sons[i];
+    if(strcmp(tmp->name, name) == 0)
+      return tmp->type;
+  }
+  return NULL;
+}
+
+int verif_type_exp(type_exp t1, type_exp t2){
+  if(t1 == NULL || t2 == NULL)
+    if(t1 != t2)
+      return 0;
+    else
+      return 1;
+  if(t1->depth != t2->depth)
+    return 0;
+  for(int i = 0; i < t1->depth; i++)
+    if(t1->type[i] != t2->type[i])
+      return 0;
+  return 1;
+}
+
+int verif_call(tree s, tree call, tree func){
+  tree f = NULL;
+  tree lfunc = s->sons[1];
+  for(int i = 0; i < lfunc->nb_sons; i++){
+    if(strcmp(call->sons[0], ((sign)((tree)lfunc->sons[i])->sons[0])->name) == 0)
+      f = lfunc->sons[i];
+  }
+  if(f == NULL)
+    return -2;
+  call->type = ((sign)f->sons[0])->type;
+  tree argt = ((sign)f->sons[0])->argt;
+  if(argt->nb_sons != ((tree)call->sons[1])->nb_sons)
+    return -1;
+  for(int i = 0; i < argt->nb_sons; i++){
+    analize_code(s, ((tree)call->sons[1])->sons[i], func);
+    if(verif_type_exp(((var)argt->sons[i])->type, ((tree)((tree)call->sons[1])->sons[i])->type) == 0)
+      return 0;
+  }
+  return 1;
+}
+
+void define_type_val(tree s, tree code, tree func){
+  switch (((val)code->sons[0])->def)
+  {
+  case Bool:
+    code->type = init_type_exp(T_bool);
+    break;
+  case Int:
+    code->type = init_type_exp(T_int);
+    break;
+  case Var:
+    code->type = type_def_var(s->sons[0], ((val)code->sons[0])->param.name, func);
+    if(code->type == NULL)
+      printf("VARERROR: variable non définie : %s\n", ((val)code->sons[0])->param.name);
+    break;
+  }
+}
+
+void analize_code(tree s, tree code, tree func){
+  switch (code->def)
+    {
+    case Val:
+      define_type_val(s, code, func);
+      return;
+      break;
+    case Call:
+      ;
+      int j = verif_call(s, code, func);
+      if(j == -2)
+	printf("CALLERROR: fonction non définie : %s\n", (char*)code->sons[0]);
+      if(j == -1)
+	printf("CALLERROR: nombre de parametre incorrect : %s\n", (char*)code->sons[0]);
+      if(j == 0)
+	error_analize("type args diférents de la définition de la fonction", code);
+      return;
+      break;
+    case NewAr:
+      analize_code(s, code->sons[1], func);
+      type_exp ar = code->sons[0];
+      int i = ar->depth - 1;
+      code->type = init_type_exp(ar->type[i]);
+      for(i -= 1; i >= 0; i--)
+	add_type(code->type, ar->type[i]);
+      add_type(code->type, T_array);
+      if(((tree)code->sons[1])->type == NULL || ((tree)code->sons[1])->type->type[0] != T_int)
+	error_analize("taille de type non-entier", code);
+      return;
+      break;
+    case Tab:
+      ;
+      type_exp tab = type_def_var(s->sons[0], code->sons[0], func);
+      int nb = tab->depth;
+      if(tab == NULL)
+        printf("VARERROR: tableau non définie : %s\n", (char*)code->sons[0]);
+      for(int i = 1; i < code->nb_sons; i++){
+	analize_code(s, code->sons[i], func);
+	nb--;
+	if(((tree)code->sons[i])->type == NULL || ((tree)code->sons[i])->type->type[0] != T_int)
+	  error_analize("index non-entier dans un tableau", code->sons[i]);
+      }
+      if(nb <= 0){
+	error_analize("trop d'index par rapport à la définition du tableau", code);
+	code->type = NULL;
+      }else{
+	code->type = init_type_exp(tab->type[tab->depth - 1]);
+	for(int i = 1; i < nb; i++)
+	  add_type(code->type, tab->type[tab->depth - i - 1]);
+      }
+      return;
+      break;
+    case Af:
+      ;
+      type_exp t = type_def_var(s->sons[0], code->sons[0], func);
+      analize_code(s, code->sons[1], func);
+      if(t == NULL || verif_type_exp(t, ((tree)code->sons[1])->type) == 0)
+	error_analize("affectation de type incoherents", code);
+      return;
+      break;
+    }
+  
+  for(int i = 0; i < code->nb_sons; i++)
+    analize_code(s, code->sons[i], func);
+  
+  switch (code->def)
+    {
+    case Pl:
+    case Mu:
+    case Mo:
+      code->type = init_type_exp(T_int);
+      if(verif_type_exp(((tree)code->sons[0])->type, code->type) == 0 || verif_type_exp(((tree)code->sons[1])->type, code->type) == 0)
+	error_analize("op entier sur args non-entiers", code);
+      break;
+    case Or:
+    case And:
+      code->type = init_type_exp(T_bool);
+      if(verif_type_exp(((tree)code->sons[0])->type, code->type) == 0 || verif_type_exp(((tree)code->sons[1])->type, code->type) == 0)
+	error_analize("op boolean sur args non-boolean", code);
+      break;
+    case Not:
+      code->type = init_type_exp(T_bool);
+      if(verif_type_exp(((tree)code->sons[0])->type, code->type) == 0)
+	error_analize("op boolean sur args non-boolean", code);
+      break;
+    case Lt:
+      code->type = init_type_exp(T_bool);
+      if(((tree)code->sons[0])->type == NULL || ((tree)code->sons[0])->type->type[0] != T_int || verif_type_exp(((tree)code->sons[0])->type, ((tree)code->sons[1])->type) == 0)
+	error_analize("op boolean sur args non-entier", code);
+      break;
+    case Eq:
+      code->type = init_type_exp(T_bool);
+      if(((tree)code->sons[1])->type == NULL || verif_type_exp(((tree)code->sons[0])->type, ((tree)code->sons[1])->type) == 0)
+	error_analize("op boolean sur args de differents type", code);
+      break;
+    case AfTab:
+      if(((tree)code->sons[0])->type == NULL || verif_type_exp(((tree)code->sons[0])->type, ((tree)code->sons[1])->type) == 0)
+	error_analize("affectation de type incoherents", code);
+      break;
+    case If:
+    case Wh:
+      if(((tree)code->sons[0])->type == NULL || ((tree)code->sons[0])->type->type[0] != T_bool)
+	error_analize("condition de type boolean attendue", code);
+      break;
+    }
+}
+
+void analize_function(tree s){
+  tree lfunc = s->sons[1];
+  for(int i = 0; i < lfunc->nb_sons; i++)
+    analize_code(s, ((tree)lfunc->sons[i])->sons[2], lfunc->sons[i]);
+}
+
+void analize(tree s){
+  analize_function(s);
+  analize_code(s, s->sons[2], NULL);
+}
+
 void free_tree(tree s);
-void free_type_var(type_var tp);
+void free_type_exp(type_exp tp);
 void free_var(var v);
 void free_sign(sign s);
 void free_val(val v);

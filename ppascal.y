@@ -84,8 +84,8 @@ L_argtnn: Argt {$$ = init_tree(Lvart); add_son($$, $1);}
 Argt: V ':' TP {$$ = init_var($1, $3);}
 ;
 
-TP: BOO {$$ = init_type_var(T_bool);}
-| INT {$$ = init_type_var(T_int);}
+TP: BOO {$$ = init_type_exp(T_bool);}
+| INT {$$ = init_type_exp(T_int);}
 | AR TP {add_type($2, T_array); $$ = $2;}
 ;
 
@@ -120,6 +120,8 @@ int yyerror(char *str){
 
 void main(){
   yyparse();
-  if(s != NULL)
-    afficher(s);
+  if(s == NULL)
+    return;
+  display_tree(s);
+  analize(s);
 }
