@@ -59,14 +59,14 @@ extern void display_var(var v);
 extern void display_sign(sign s);
 extern void display_val(val v);
 
-extern void error_analize(char* s, tree exp);
+extern void error_analize(char* s, tree exp, int* error);
 extern type_exp type_def_var(tree s, char* name, tree func);
 extern int verif_type_exp(type_exp t1, type_exp t2);
-extern int verif_call(tree s, tree call, tree func);
-extern void define_type_val(tree s, tree code, tree func);
-extern void analize_code(tree s, tree code, tree func);
-extern void analize_function(tree s);
-extern void analize(tree s);
+extern int verif_call(tree s, tree call, tree func, int* error);
+extern void define_type_val(tree s, tree code, tree func, int* error);
+extern void analize_code(tree s, tree code, tree func, int* error);
+extern void analize_function(tree s, int* error);
+extern int analize(tree s);
 
 extern void free_tree(tree s);
 extern void free_type_exp(type_exp tp);

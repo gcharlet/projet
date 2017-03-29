@@ -123,5 +123,9 @@ void main(){
   if(s == NULL)
     return;
   display_tree(s);
-  analize(s);
+
+  int error = analize(s);
+  if(error != 0)
+    return;
+  
 }
