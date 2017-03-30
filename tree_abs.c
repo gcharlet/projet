@@ -1,4 +1,3 @@
-#define _XOPEN_SOURCE 500
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -44,14 +43,14 @@ type_exp init_type_exp(enum type_expression type){
 
 var init_var(char* name, type_exp type){
   var c = var_alloc();
-  c->name = strdup(name);
+  c->name = name;
   c->type = type;
   return c;
 }
 
 sign init_sign(char* name, tree argt, type_exp type){
   sign s = sign_alloc();
-  s->name = strdup(name);
+  s->name = name;
   s->argt = argt;
   s->type = type;
   return s;
@@ -67,7 +66,7 @@ val init_val(enum type_value def, int value, char* name){
       v->param.val = value;
       break;
     case Var :
-      v->param.name = strdup(name);
+      v->param.name = name;
       break;
     }
   return v;
@@ -115,8 +114,6 @@ int add_son(tree pere, void *son){
 	return EXIT_FAILURE;
       break;
     }
-  if(pere->nb_sons == 0 && (pere->def == Af || pere->def == Call || pere->def == Tab))
-    son = strdup(son);
   pere->nb_sons += 1;
   pere->sons = realloc(pere->sons, sizeof(void *) * pere->nb_sons);
   pere->sons[pere->nb_sons - 1] = son;
@@ -238,11 +235,18 @@ void error_analize(char* s, tree exp, int* error){
   *error += 1;
 }
 
+type_exp copy_type_exp(type_exp t){
+  type_exp tmp = init_type_exp(t->type[t->depth - 1]);
+  for(int i = t->depth - 2; i >= 0; i--)
+    add_type(tmp, t->type[i]);
+  return tmp;
+}
+
 type_exp type_def_var(tree s, char* name, tree func){
   if(s->def != Lvart)
     return NULL;
   if(func != NULL){
-    if(strcmp(((sign)func->sons[0])->name, name) == 0)
+    if(((sign)func->sons[0])->type != NULL && strcmp(((sign)func->sons[0])->name, name) == 0)
       return ((sign)func->sons[0])->type;
     for(int i = 0; i < ((sign)func->sons[0])->argt->nb_sons; i++){
       var tmp = ((sign)func->sons[0])->argt->sons[i];
@@ -286,7 +290,8 @@ int verif_call(tree s, tree call, tree func, int* error){
   }
   if(f == NULL)
     return -2;
-  call->type = ((sign)f->sons[0])->type;
+  if(((sign)f->sons[0])->type != NULL)
+    call->type = copy_type_exp(((sign)f->sons[0])->type);
   tree argt = ((sign)f->sons[0])->argt;
   if(argt->nb_sons != ((tree)call->sons[1])->nb_sons)
     return -1;
@@ -308,7 +313,7 @@ void define_type_val(tree s, tree code, tree func, int* error){
     code->type = init_type_exp(T_int);
     break;
   case Var:
-    code->type = type_def_var(s->sons[0], ((val)code->sons[0])->param.name, func);
+    code->type = copy_type_exp(type_def_var(s->sons[0], ((val)code->sons[0])->param.name, func));
     if(code->type == NULL){
       printf("VARERROR: variable non définie : %s\n", ((val)code->sons[0])->param.name);
       *error += 1;
@@ -429,14 +434,31 @@ void analize_code(tree s, tree code, tree func, int* error){
     }
 }
 
+void analize_list_vart(tree s, int* error){
+  if(s->def != Lvart)
+    return;
+  for(int i = 0; i < s->nb_sons; i++){
+    for(int j = i + 1; j < s->nb_sons; j++){
+      if(strcmp(((var)s->sons[i])->name, ((var)s->sons[j])->name) == 0){
+	printf("VARERROR : variable déja définie dans la liste : %s\n", ((var)s->sons[j])->name);
+	*error += 1;
+      }
+    }
+  }
+}
+
 void analize_function(tree s, int* error){
   tree lfunc = s->sons[1];
-  for(int i = 0; i < lfunc->nb_sons; i++)
+  for(int i = 0; i < lfunc->nb_sons; i++){
+    analize_list_vart(((sign)((tree)lfunc->sons[i])->sons[0])->argt, error);
+    analize_list_vart(((tree)lfunc->sons[i])->sons[1], error);
     analize_code(s, ((tree)lfunc->sons[i])->sons[2], lfunc->sons[i], error);
+  }
 }
 
 int analize(tree s){
   int error = 0;
+  analize_list_vart(s->sons[0], &error);
   analize_function(s, &error);
   analize_code(s, s->sons[2], NULL, &error);
   if(error == 0)
