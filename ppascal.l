@@ -47,6 +47,7 @@ Nom [A-Za-z][A-Za-z0-9\_]*
 <INITIAL>"true" {return(TRUE);}
 <INITIAL>"false" {return(FALSE);}
 <INITIAL>{Nombre} {yylval.val = atoi(yytext); return(I);}
-<INITIAL>{Nom} {yylval.str = strdup(yytext); return(V);}
+<INITIAL>{Nom} {yylval.str = malloc(sizeof(char) * yyleng+1); strcpy(yylval.str, yytext); return(V);}
+##<INITIAL>{Nom} {yylval.str = strdup(yytext); return(V);}
 [ \n\t] {}
 %%

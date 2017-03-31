@@ -53,10 +53,14 @@ heap init_heap(int space_address, int space_memory){
 }
 
 env concat_env(env e1, env e2){
+  if(e1 == NULL)
+    return e2;
+  if(e2 == NULL)
+    return e1;
   env e = e2;
-  while(e2->next != NULL)
-    e2 = e2->next;
-  e2->next = e1;
+  while(e->next != NULL)
+    e = e->next;
+  e->next = e1;
   return e2;
 }
 
@@ -158,6 +162,7 @@ int interp_pp_code(env G, heap H, env E, tree code, tree lfunc){
 	}
       break;
     case Call:
+      return interp_pp_call(G, H, E, code, lfunc);
       break;
     case NewAr:
       return new_array(H, interp_pp_code(G, H, E, code->sons[1], lfunc));
@@ -187,8 +192,14 @@ int interp_pp_code(env G, heap H, env E, tree code, tree lfunc){
       affect_heap(H, addr, interp_pp_code(G, H, E, tab->sons[code->nb_sons-1], lfunc), interp_pp_code(G, H, E, code->sons[1], lfunc));
       break;
     case If:
+      if(interp_pp_code(G, H, E, code->sons[0], lfunc))
+	interp_pp_code(G, H, E, code->sons[1], lfunc);
+      else
+	interp_pp_code(G, H, E, code->sons[2], lfunc);
       break;
     case Wh:
+      while(interp_pp_code(G, H, E, code->sons[0], lfunc))
+	interp_pp_code(G, H, E, code->sons[1], lfunc);
       break;
     case Not:
       if(interp_pp_code(G, H, E, code->sons[0], lfunc))
@@ -203,7 +214,6 @@ int interp_pp_code(env G, heap H, env E, tree code, tree lfunc){
     case Lt:
     case Eq:
       return operation_pp(code->def, interp_pp_code(G, H, E, code->sons[0], lfunc), interp_pp_code(G, H, E, code->sons[1], lfunc));
-      return 1;
       break;
     case Se:
       interp_pp_code(G, H, E, code->sons[0], lfunc);
@@ -211,22 +221,45 @@ int interp_pp_code(env G, heap H, env E, tree code, tree lfunc){
     }
 }
 
-env interp_pp_call(env G, heap H, env E, tree call, tree lfunc);
+int interp_pp_call(env G, heap H, env E, tree call, tree lfunc){
+  tree f = NULL;
+  env e = NULL;
+  for(int i = 0; i < lfunc->nb_sons; i++){
+    f = lfunc->sons[i];
+    if(strcmp(call->sons[0], ((sign)f->sons[0])->name) == 0)
+      break;
+  }
+  if(f == NULL)
+    return 0;
+  sign s = f->sons[0];
+  if(s->type != NULL)
+    e = init_env(e, s->name, s->type);
+  e = concat_env(e, init_env_list(s->argt));
+  for(int i = 0; i < ((tree)call->sons[1])->nb_sons; i++)
+    affect_env(e, ((var)s->argt->sons[i])->name, interp_pp_code(G, H, E, ((tree)call->sons[1])->sons[i], lfunc));
+  e = concat_env(e, init_env_list(f->sons[1]));
+  interp_pp_code(G, H, e, f->sons[2], lfunc);
+  int ret = 0;
+  if(s->type != NULL)
+    ret = value_env(e, s->name);
+  //free_env(e);
+  return ret;
+}
 
 void display_tab(heap H, int add, int depth, enum define def){
   for(int i = 0; i < H->size[add]; i++){
     if(depth != 1){
       printf("[%d] = {", i);
-      display_tab(H, H->memory[H->address[add] + i], depth-1, def);
+      display_tab(H, value_heap(H, add, i), depth-1, def);
       if( i+1 < H->size[add])
 	printf("}, ");
       else
 	printf("}");
     }else{
       if(def == Int)
-	printf("%d", H->memory[H->address[add] + i]);
+	printf("%d", value_heap(H, add, i));
       else
-	printf("%s", (H->memory[H->address[add] + i])?"true":"false");
+	printf("%s", (value_heap(H, add, i))?"true":"false");
       if( i+1 < H->size[add])
 	printf(", ");
     }
@@ -249,5 +282,5 @@ void display_env_heap(env G, heap H){
   }
 }
 
-void free_env();
-void free_heap();
+void free_env(env e);
+void free_heap(heap h);
