@@ -16,6 +16,7 @@ typedef struct heap {
   int* memory;
   int last_memory;
   int last_address;
+  int error;
 } *heap;
 
 extern env alloc_env();
@@ -32,6 +33,14 @@ extern int value_env(env e, char* name);
 extern int new_array(heap h, int size);
 extern int value_heap(heap h, int address, int indice);
 extern int affect_heap(heap h, int address, int indice, int value);
+
+extern int operation_pp(enum define def, int val1, int val2);
+extern int value_env_pp(env G, env E, char* name);
+extern int interp_pp(env *G, heap *H, tree s);
+extern int interp_pp_code(env G, heap H, env E, tree code, tree lfunc);
+extern env interp_pp_call(env G, heap H, env E, tree call, tree lfunc);
+extern void display_tab(heap H, int add, int depth, enum define def);
+extern void display_env_heap(env G, heap H);
 
 extern void free_env();
 extern void free_heap();

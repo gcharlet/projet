@@ -42,6 +42,7 @@ heap init_heap(int space_address, int space_memory){
   h->memory = malloc(sizeof(int) * space_memory);
   h->last_memory = 1;
   h->last_address = 1;
+  h->error = 0;
   for(int i = 0; i < space_address; i++){
     h->address[i] = 0;
     h->size[i] = 0;
@@ -66,10 +67,8 @@ void affect_env(env e, char* name, int value){
 }
 
 env search_env(env e, char* name){
-  if(e == NULL)
-    return NULL;
   env p = e;
-  while(strcmp(p->name, name) != 0 && p->next != NULL)
+  while(p != NULL && strcmp(p->name, name) != 0)
     p = p->next;
   return p;
 }
@@ -92,16 +91,162 @@ int new_array(heap h, int size){
 
 int value_heap(heap h, int address, int indice){
   int i = h->address[address];
-  if(i == 0 || indice >= h->size[address])
+  if(i == 0 || indice >= h->size[address]){
+    printf("erreur de lecture dans un tableau\n");
+    h->error += 1;
     return 0;
+  }
   return h->memory[i+indice];
 }
 
 int affect_heap(heap h, int address, int indice, int value){
-  if(h->address[address] == 0 || indice >= h->size[address])
+  if(h->address[address] == 0 || indice >= h->size[address]){
+    printf("erreur d'ecriture dans un tableau\n");
+    h->error += 1;
     return -1;
+  }
   h->memory[h->address[address] + indice] = value;
   return 0;
+}
+
+int operation_pp(enum define def, int val1, int val2){
+  switch (def)
+    {
+    case Pl:
+      return val1 + val2;
+    case Mo:
+      return val1 - val2;
+    case Mu:
+      return val1 * val2;
+    case Or:
+      return (val1 || val2)?1:0;
+    case And:
+      return (val1 && val2)?1:0;
+    case Lt:
+      return (val1 < val2)?1:0;
+    case Eq:
+      return (val1 == val2)?1:0;
+    }
+}
+
+int value_env_pp(env G, env E, char* name){
+  if(E != NULL){
+    env v = search_env(E, name);
+    if(v != NULL)
+      return v->value;
+  }
+  return value_env(G, name);
+}
+
+int interp_pp(env *G, heap *H, tree s){
+  *G = init_env_list(s->sons[0]);
+  *H = init_heap(1000, 10000);
+  interp_pp_code(*G, *H, NULL, s->sons[2], s->sons[1]);
+}
+
+int interp_pp_code(env G, heap H, env E, tree code, tree lfunc){
+  switch (code->def)
+    {
+    case Val:
+      switch (((val)code->sons[0])->def)
+	{
+	case Bool:
+	case Int:
+	  return ((val)code->sons[0])->param.val;
+	case Var:
+	  return value_env_pp(G, E, ((val)code->sons[0])->param.name);
+	}
+      break;
+    case Call:
+      break;
+    case NewAr:
+      return new_array(H, interp_pp_code(G, H, E, code->sons[1], lfunc));
+      break;
+    case Tab:
+      ;
+      int add = value_env_pp(G, E, code->sons[0]);
+      for(int i = 1; i < code->nb_sons; i++)
+	add = value_heap(H, add, interp_pp_code(G, H, E, code->sons[i], lfunc));
+      return add;
+      break;
+    case Af:
+      ;
+      env p = NULL;
+      if(E != NULL)
+	p = search_env(E, code->sons[0]);
+      if(p == NULL)
+	p = search_env(G, code->sons[0]);
+      p->value = interp_pp_code(G, H, E, code->sons[1], lfunc);
+      break;
+    case AfTab:
+      ;
+      tree tab = code->sons[0];
+      int addr = value_env_pp(G, E, tab->sons[0]);
+      for(int i = 1; i < (code->nb_sons-1); i++)
+	addr = value_heap(H, add, interp_pp_code(G, H, E, tab->sons[i], lfunc));
+      affect_heap(H, addr, interp_pp_code(G, H, E, tab->sons[code->nb_sons-1], lfunc), interp_pp_code(G, H, E, code->sons[1], lfunc));
+      break;
+    case If:
+      break;
+    case Wh:
+      break;
+    case Not:
+      if(interp_pp_code(G, H, E, code->sons[0], lfunc))
+	return 0;
+      return 1;
+      break;
+    case Pl:
+    case Mo:
+    case Mu:
+    case Or:
+    case And:
+    case Lt:
+    case Eq:
+      return operation_pp(code->def, interp_pp_code(G, H, E, code->sons[0], lfunc), interp_pp_code(G, H, E, code->sons[1], lfunc));
+      return 1;
+      break;
+    case Se:
+      interp_pp_code(G, H, E, code->sons[0], lfunc);
+      interp_pp_code(G, H, E, code->sons[1], lfunc);
+    }
+}
+
+env interp_pp_call(env G, heap H, env E, tree call, tree lfunc);
+
+void display_tab(heap H, int add, int depth, enum define def){
+  for(int i = 0; i < H->size[add]; i++){
+    if(depth != 1){
+      printf("[%d] = {", i);
+      display_tab(H, H->memory[H->address[add] + i], depth-1, def);
+      if( i+1 < H->size[add])
+	printf("}, ");
+      else
+	printf("}");
+    }else{
+      if(def == Int)
+	printf("%d", H->memory[H->address[add] + i]);
+      else
+	printf("%s", (H->memory[H->address[add] + i])?"true":"false");
+      if( i+1 < H->size[add])
+	printf(", ");
+    }
+  }
+}
+
+void display_env_heap(env G, heap H){
+  if(G != NULL){
+    display_env_heap(G->next, H);
+    if(G->type->depth == 1){
+      if(G->type->type[0] == Int)
+	printf("var int %s = %d\n", G->name, G->value);
+      else
+	printf("var bool %s = %s\n", G->name, (G->value)?"true":"false");
+    }else{
+      printf("var array %s = {", G->name);
+      display_tab(H, G->value, G->type->depth-1, G->type->type[G->type->depth - 1]);
+      printf("}\n");
+    }
+  }
 }
 
 void free_env();

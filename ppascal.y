@@ -3,6 +3,7 @@
   #include <stdlib.h>
   #include <string.h>
   #include "tree_abs.h"
+  #include "interp.h"
   
   int yyerror(char *s);
   int yylex();
@@ -127,5 +128,9 @@ void main(){
   int error = analize(s);
   if(error != 0)
     return;
-  
+
+  env G = NULL;
+  heap H = NULL;
+  interp_pp(&G, &H, s);
+  display_env_heap(G, H);
 }
