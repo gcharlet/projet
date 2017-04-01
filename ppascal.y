@@ -133,4 +133,11 @@ void main(){
   heap H = NULL;
   interp_pp(&G, &H, s);
   display_env_heap(G, H);
+  if(H->error != 0)
+    return;
+
+
+  free_env(G);
+  free_heap(H);
+  free_tree(s);
 }

@@ -236,6 +236,8 @@ void error_analize(char* s, tree exp, int* error){
 }
 
 type_exp copy_type_exp(type_exp t){
+  if(t == NULL)
+    return NULL;
   type_exp tmp = init_type_exp(t->type[t->depth - 1]);
   for(int i = t->depth - 2; i >= 0; i--)
     add_type(tmp, t->type[i]);
@@ -466,8 +468,62 @@ int analize(tree s){
   return error;
 }
 
-void free_tree(tree s);
-void free_type_exp(type_exp tp);
-void free_var(var v);
-void free_sign(sign s);
-void free_val(val v);
+void free_tree(tree s){
+  int i = 0;
+  switch(s->def)
+    {
+    case Lvart:
+      for(i; i < s->nb_sons; i++)
+	free_var(s->sons[i]);
+      break;
+    case Af:
+    case Tab:
+    case Call:
+      free(s->sons[0]);
+      i++;
+      break;
+    case Func:
+      free_sign(s->sons[0]);
+      i++;
+      break;
+    case NewAr:
+      free_type_exp(s->sons[0]);
+      i++;
+      break;
+    case Val:
+      free_val(s->sons[0]);
+      i++;
+      break;
+    }
+  for(i; i < s->nb_sons; i++)
+    free_tree(s->sons[i]);
+  if(s->type != NULL)
+    free_type_exp(s->type);
+  free(s->sons);
+  free(s);
+}
+
+void free_type_exp(type_exp tp){
+  free(tp->type);
+  free(tp);
+}
+
+void free_var(var v){
+  free(v->name);
+  free_type_exp(v->type);
+  free(v);
+}
+
+void free_sign(sign s){
+  free(s->name);
+  free_tree(s->argt);
+  if(s->type != NULL)
+    free_type_exp(s->type);
+  free(s);
+}
+
+void free_val(val v){
+  if(v->def == Var)
+    free(v->param.name);
+  free(v);
+}

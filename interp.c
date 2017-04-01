@@ -242,7 +242,7 @@ int interp_pp_call(env G, heap H, env E, tree call, tree lfunc){
   int ret = 0;
   if(s->type != NULL)
     ret = value_env(e, s->name);
-  //free_env(e);
+  free_env(e);
   return ret;
 }
 
@@ -282,5 +282,20 @@ void display_env_heap(env G, heap H){
   }
 }
 
-void free_env(env e);
-void free_heap(heap h);
+void free_env(env e){
+  env tmp;
+  while(e != NULL){
+    tmp = e;
+    e = e->next;
+    free(tmp->name);
+    free_type_exp(tmp->type);
+    free(tmp);
+  }
+}
+
+void free_heap(heap h){
+  free(h->address);
+  free(h->size);
+  free(h->memory);
+  free(h);
+}

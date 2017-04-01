@@ -1,4 +1,5 @@
 #include "tree_abs.h"
+#include "translate.h"
 
 #ifndef INTERP_H
 #define INTERP_H
