@@ -3,6 +3,8 @@
 #ifndef TRANSLATE_H
 #define TRANSLATE_H
 
+#define STRING_LENGTH 12
+
 enum c3a {empty = 0, c_Pl, c_Mo, c_Mu, c_And, c_Or, c_Ind, c_Not, c_Af, c_Afc, c_AfInd, c_Sk, c_Jp, c_Jz, c_St, c_Param, c_Call, c_Ret};
 
 typedef struct cell{
@@ -14,14 +16,26 @@ typedef struct cell{
   struct cell* next;
 } *cell;
 
+typedef struct list{
+  cell first;
+  cell end;
+} *list;
+
 extern cell alloc_cell();
+extern list alloc_list();
+extern char* alloc_string();
 
-extern cell init_cell(char* name, enum c3a def, char* arg1, char* arg2, char* res);
-extern cell search_cell(cell c, char* name);
-extern void concat_cell(cell c1, cell c2);
+extern list init_cell(char* name, enum c3a def, char* arg1, char* arg2, char* res);
+extern cell search_cell(list l, char* name);
+extern void concat_list(list l1, list l2);
 
-extern void display_cell(cell c);
+extern list translate_pp(tree s);
+extern list translate_pp_function(tree function, int* et, int* ct, int* va);
+extern list translate_pp_code(tree code, int* et, int* ct, int* va);
+extern list translate_pp_operation(tree code, int* et, int* ct, int* va);
 
-extern void free_cell(cell c);
+extern void display_list(list l);
+
+extern void free_list(list l);
 
 #endif

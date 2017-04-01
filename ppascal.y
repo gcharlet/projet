@@ -4,6 +4,7 @@
   #include <string.h>
   #include "tree_abs.h"
   #include "interp.h"
+  #include "translate.h"
   
   int yyerror(char *s);
   int yylex();
@@ -126,18 +127,27 @@ void main(){
   display_tree(s);
 
   int error = analize(s);
-  if(error != 0)
+  if(error != 0){
+    free_tree(s);
     return;
+  }
 
   env G = NULL;
   heap H = NULL;
   interp_pp(&G, &H, s);
   display_env_heap(G, H);
-  if(H->error != 0)
+  if(H->error != 0){
+    free_env(G);
+    free_heap(H);
     return;
-
-
+  }
   free_env(G);
   free_heap(H);
+
+  printf("\n");
+  list l = translate_pp(s);
+  display_list(l);
   free_tree(s);
+
+  free_list(l);
 }
