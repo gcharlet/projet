@@ -5,7 +5,7 @@
 
 #define STRING_LENGTH 12
 
-enum c3a {empty = 0, c_Pl, c_Mo, c_Mu, c_And, c_Or, c_Ind, c_Not, c_Af, c_Afc, c_AfInd, c_Sk, c_Jp, c_Jz, c_St, c_Param, c_Call, c_Ret};
+enum c3a {empty = 0, c_Pl, c_Mo, c_Mu, c_And, c_Or, c_Lt, c_Ind, c_Not, c_Af, c_Afc, c_AfInd, c_Sk, c_Jp, c_Jz, c_St, c_Param, c_Call, c_Ret};
 
 typedef struct cell{
   char* name;
@@ -33,6 +33,7 @@ extern list translate_pp(tree s);
 extern list translate_pp_function(tree function, int* et, int* ct, int* va);
 extern list translate_pp_code(tree code, int* et, int* ct, int* va);
 extern list translate_pp_operation(tree code, int* et, int* ct, int* va);
+extern list translate_pp_tab(tree tab, int depth, int* et, int* ct, int* va);
 
 extern void display_list(list l);
 

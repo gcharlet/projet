@@ -75,10 +75,10 @@ list translate_pp_code(tree code, int* et, int* ct, int* va){
     case Mu:
     case Or:
     case And:
+    case Lt:
       return translate_pp_operation(code, et, ct, va);
       break;
     case Eq:
-    case Lt:
       break;
     case Not:
       name = alloc_string();
@@ -93,8 +93,12 @@ list translate_pp_code(tree code, int* et, int* ct, int* va){
     case Call:
       break;
     case NewAr:
+      name = alloc_string();
+      sprintf(name, "ET%d", (*et)++);
+      return init_cell(name, c_Sk, NULL, NULL, "CT");
       break;
     case Tab:
+      return translate_pp_tab(code, code->nb_sons, et, ct, va);
       break;
     case Se:
       l = translate_pp_code(code->sons[0], et, ct, va);
@@ -111,6 +115,16 @@ list translate_pp_code(tree code, int* et, int* ct, int* va){
       return l;
       break;
     case AfTab:
+      l = translate_pp_tab(code->sons[0], ((tree)code->sons[0])->nb_sons - 1, et, ct, va);
+      arg1 = l->end->res;
+      concat_list(l, translate_pp_code(((tree)code->sons[0])->sons[((tree)code->sons[0])->nb_sons - 1], et, ct, va));
+      arg2 = l->end->res;
+      concat_list(l, translate_pp_code(code->sons[1], et, ct, va));
+      res = l->end->res;
+      name = alloc_string();
+      sprintf(name, "ET%d", (*et)++);
+      concat_list(l, init_cell(name, c_AfInd, arg1, arg2, res));
+      return l;
       break;
     case Sk:
       name = alloc_string();
@@ -160,6 +174,9 @@ list translate_pp_operation(tree code, int* et, int* ct, int* va){
     case And:
       def = c_And;
       break;
+    case Lt:
+      def = c_Lt;
+      break;
     }
   list l = translate_pp_code(code->sons[0], et, ct, va);
   char* arg1 = strdup(l->end->res);
@@ -171,7 +188,26 @@ list translate_pp_operation(tree code, int* et, int* ct, int* va){
   return l;
 }
 
-char* list_c3a[] = {"", "Pl", "Mo", "Mu", "And", "Or", "Ind", "Not", "Af", "Afc", "AfInd", "Sk", "Jp", "Jz", "St", "Param", "Call", "Ret"};
+list translate_pp_tab(tree tab, int depth, int* et, int* ct, int* va){
+  char *name, *arg1, *arg2, *res;
+  list l = NULL;
+  name = alloc_string();
+  res = alloc_string();
+  sprintf(name, "ET%d", (*et)++);
+  arg1 = tab->sons[0];
+  l = init_cell(name, c_Sk, NULL, NULL, arg1);
+  for(int i = 1; i < depth; i++){
+    concat_list(l, translate_pp_code(tab->sons[i], et, ct, va));
+    sprintf(name, "ET%d", (*et)++);
+    sprintf(res, "VA%d", (*va)++);
+    arg2 = l->end->res;
+    concat_list(l, init_cell(name, c_Ind, arg1, arg2, res));
+    arg1 = l->end->res;
+  }
+  return l;
+}
+
+char* list_c3a[] = {"", "Pl", "Mo", "Mu", "And", "Or", "Lt", "Ind", "Not", "Af", "Afc", "AfInd", "Sk", "Jp", "Jz", "St", "Param", "Call", "Ret"};
 
 void display_list(list l){
   cell c = l->first;
