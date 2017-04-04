@@ -91,7 +91,9 @@ list translate_pp_code(tree code, int* et, int* ct, int* va){
       return l;
       break;
     case Call:
+      break;
     case NewAr:
+      break;
     case Tab:
       break;
     case Se:
@@ -116,7 +118,9 @@ list translate_pp_code(tree code, int* et, int* ct, int* va){
       return init_cell(name, c_Sk, NULL, NULL, NULL);
       break;
     case If:
+      break;
     case Wh:
+      break;
     case Largs:
       break;
     case Val:
