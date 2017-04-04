@@ -12,6 +12,10 @@ heap alloc_heap(){
   return malloc(sizeof(struct heap));
 }
 
+pile alloc_pile() {
+  return malloc(sizeof(struct pile));
+}
+
 env init_env(env e, char* name, type_exp type){
   if(search_env(e, name) != NULL)
     return e;
@@ -34,6 +38,11 @@ env init_env_list(tree s){
   }
   return e;
 }
+
+env init_env_int(env e, char* name) {
+  type_exp t = init_type_exp (T_int);
+  return init_env (e, name, t);
+}
   
 heap init_heap(int space_address, int space_memory){
   heap h= alloc_heap();
@@ -50,6 +59,24 @@ heap init_heap(int space_address, int space_memory){
   for(int i = 0; i < space_memory; i++)
     h->memory[i] = 0;
   return h;
+}
+
+pile stack(cell c, pile daddy) {
+  pile p = alloc_pile();
+  p->next = daddy;
+  p->c = c;
+  return p;
+}
+
+cell unstack (pile* p) {
+  if (p = NULL)
+    return NULL;
+  
+  cell c = (*p)->c;
+  pile tmp = *p;
+  *p = (*p)->next;
+  free(tmp);
+  return c;
 }
 
 env concat_env(env e1, env e2){
@@ -146,6 +173,7 @@ int interp_pp(env *G, heap *H, tree s){
   *G = init_env_list(s->sons[0]);
   *H = init_heap(1000, 10000);
   interp_pp_code(*G, *H, NULL, s->sons[2], s->sons[1]);
+  return (*H)->error;
 }
 
 int interp_pp_code(env G, heap H, env E, tree code, tree lfunc){
@@ -244,6 +272,102 @@ int interp_pp_call(env G, heap H, env E, tree call, tree lfunc){
     ret = value_env(e, s->name);
   free_env(e);
   return ret;
+}
+
+int operation_c3a(enum c3a op, int val1, int val2) {
+  
+  switch (op)
+    {
+    case c_Pl:
+      return val1 + val2;
+    case c_Mo:
+      return val1 - val2;
+    case c_Mu:
+      return val1 * val2;
+    case c_Or:
+      return (val1 || val2)?1:0;
+    case c_And:
+      return (val1 && val2)?1:0;
+    case c_Lt:
+      return (val1 < val2)?1:0;
+    }
+}
+
+int interp_c3a(env *G, heap* H, list l){
+  heap h = init_heap(1000, 10000);
+  env g = NULL;
+  cell c = l->first;
+  pile p = NULL;
+  
+  while(c != NULL){
+    switch (c->def) {
+    case c_Sk:
+      if(c->res != NULL)
+	g = init_env_int (g, c->res);
+      c = c->next;
+      break;
+    case c_Af:
+      g = init_env_int (g, c->arg1);
+      affect_env(g, c->arg1, value_env(g, c->arg2));
+      c = c->next;
+      break;
+    case c_St:
+      c = NULL;
+      break;
+    case c_Afc:
+      g = init_env_int (g, c->res);
+      affect_env (g, c->res, atoi(c->arg1));
+      c = c->next;
+      break;
+    case c_Pl:
+    case c_Mo:
+    case c_Mu:
+    case c_Or:
+    case c_And:
+    case c_Lt:
+      g = init_env_int (g, c->res);
+      affect_env (g, c->res, operation_c3a (c->def, value_env (g, c->arg1), value_env (g, c->arg2)));
+      c = c->next;
+      break;
+    case c_Jz:
+      if (value_env (g, c->arg1) == 0) {
+	c = search_cell (l, c->res);
+      }
+      else {
+	c = c->next;
+      }
+      break;
+    case c_Jp:
+      c = search_cell (l, c->res);
+      break;
+    case c_Not:
+      c = c->next;
+      break;
+    case c_Ind:
+      c = c->next;
+      break;
+    case c_AfInd:
+      c = c->next;
+      break;
+    case c_Param:
+      c = c->next;
+      break;
+    case c_Call:
+      p = stack(c->next, p);
+      c = search_cell(l, c->arg1);
+      //d'autres trucs à faire
+      
+      break;
+    case c_Ret:
+      c = unstack (&p);
+      break;
+    }
+
+  }
+
+  *H = h;
+  *G = g;
+  return h->error;
 }
 
 void display_tab(heap H, int add, int depth, enum define def){

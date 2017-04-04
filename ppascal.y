@@ -149,5 +149,11 @@ void main(){
   display_list(l);
   free_tree(s);
 
+  G = NULL;
+  H = NULL;
+  interp_c3a (&G, &H, l);
+  printf("\n");
+  display_env_heap(G, H);
+
   free_list(l);
 }
