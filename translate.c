@@ -54,7 +54,9 @@ void concat_list(list l1, list l2){
 
 list translate_pp(tree s){
   int et = 0, ct = 0, va = 0;
-  list l = translate_pp_code(s->sons[2], &et, &ct, &va);
+  list l = init_cell("", c_Afc, "1", NULL, "L_TAB#");
+  concat_list(l, translate_pp_code(s->sons[2], &et, &ct, &va));
+  concat_list(l, init_cell("", c_St, NULL, NULL, NULL));
   tree lfunc = s->sons[1];
   for(int i = 0; i < lfunc->nb_sons; i++)
     concat_list(l, translate_pp_function(lfunc->sons[i], &et, &ct, &va));
@@ -79,6 +81,8 @@ list translate_pp_code(tree code, int* et, int* ct, int* va){
       return translate_pp_operation(code, et, ct, va);
       break;
     case Eq:
+      l = translate_pp_operation(code, et, ct, va);
+      
       break;
     case Not:
       name = alloc_string();
@@ -93,9 +97,20 @@ list translate_pp_code(tree code, int* et, int* ct, int* va){
     case Call:
       break;
     case NewAr:
+      l = translate_pp_code(code->sons[1], et, ct, va);
+      arg2 = l->end->res;
       name = alloc_string();
       sprintf(name, "ET%d", (*et)++);
-      return init_cell(name, c_Sk, NULL, NULL, "CT");
+      arg1 = alloc_string();
+      sprintf(arg1, "CT%d", (*ct)++);
+      concat_list(l, init_cell(name, c_Af, arg1, "L_TAB#", NULL));
+      res = alloc_string();
+      sprintf(res, "CT%d", (*ct)++);
+      sprintf(name, "ET%d", (*et)++);
+      concat_list(l, init_cell(name, c_Pl, "L_TAB#", arg2, "L_TAB#"));
+      sprintf(name, "ET%d", (*et)++);
+      concat_list(l, init_cell(name, c_Sk, NULL, NULL, arg1));
+      return l;
       break;
     case Tab:
       return translate_pp_tab(code, code->nb_sons, et, ct, va);
@@ -163,6 +178,7 @@ list translate_pp_operation(tree code, int* et, int* ct, int* va){
       def = c_Pl;
       break;
     case Mo:
+    case Eq:
       def = c_Mo;
       break;
     case Mu:
