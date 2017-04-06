@@ -69,7 +69,7 @@ pile stack(cell c, pile daddy) {
 }
 
 cell unstack (pile* p) {
-  if (p = NULL)
+  if (p == NULL)
     return NULL;
   
   cell c = (*p)->c;

@@ -30,10 +30,12 @@ extern cell search_cell(list l, char* name);
 extern void concat_list(list l1, list l2);
 
 extern list translate_pp(tree s);
-extern list translate_pp_function(tree function, int* et, int* ct, int* va);
-extern list translate_pp_code(tree code, int* et, int* ct, int* va);
-extern list translate_pp_operation(tree code, int* et, int* ct, int* va);
-extern list translate_pp_tab(tree tab, int depth, int* et, int* ct, int* va);
+extern list translate_pp_function(tree function, int* et, int* ct, int* va, tree lfunc);
+extern list translate_pp_code(tree code, int* et, int* ct, int* va, tree lfunc);
+extern list translate_pp_operation(tree code, int* et, int* ct, int* va, tree lfunc);
+extern list translate_pp_tab(tree tab, int depth, int* et, int* ct, int* va, tree lfunc);
+extern list translate_pp_call(tree call, int* et, int* ct, int* va, tree lfunc);
+extern tree argt_function_pp(tree lfunc, char* name);
 
 extern void display_list(list l);
 
