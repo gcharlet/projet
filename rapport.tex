@@ -1,0 +1,109 @@
+﻿\documentclass{report}
+
+\usepackage[francais]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\title{Projet de Compilation}
+\author{CHARLET Guillaume \and GAUTIER Florian}
+\date{10 avril 2014}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+\chapter{description du projet}
+Le projet de compilation consiste à analyser le langage Pseudo-Pascal, à l’interpréter, le traduire en C3A et à écrire un interprète de C3A.
+
+Dans un premier nous devions faire l'analyse syntaxique du langage Pseudo-Pascal afin de récupérer 
+	- les variables globales
+	- la liste des fonctions et procédures avec leurs argurments, le type éventuel du résultat et leurs corps
+	- le programme principal
+Si le texte données en entrées contient du texte non reconnue par la grammaire du Pseudo-Pascal, nous devions afficher un message d'erreur et arréter la compilation du programme.
+
+Ensuite, après l'analyse syntaxique nous devions faire l'analyse sémantique afin de vérifier que :
+	- toute expression est typable
+	- toute affectation a des membres de même type
+	- tout appel de fonction ou procédure à des paramètre d'appel qui ont la même suite de types qui la suite des paramètre de la fonction ou procédure lors de sa déclaration
+Si lors de l'analyse il existe des erreur de sémantique, nous devions afficher un message d'erreur et ne pas continuer la compilation du programme.
+
+Puis, une fois les analyses terminés, nous devions interpréter le code Pseudo-Pascal, et afficher la valeur des variables globales une fois l'interprétation finis.
+
+Enfin, une fois cela fait, nous devions transformer le code Pseudo-Pascal en C3A, puis l'interpréter et afficher la valeurs des variables globales.
+
+Il nous etait aussi possible de traduire le C3A vers le Y86, et un "ramasse-miettes" de l'interpréteur du code Pseudo-Pascal afin d'optimiser la mémoire pour la gestions des tableaux.
+
+Pour réaliser ce projet nous devions être par groupe d'au plus 4 étudiants, et nous avions environ 3 semaines pour le faire.
+
+\chapter{description des différents point à réaliser lors du projet}
+\section{analyse syntaxique}
+Pour stocker la programme lors de l'analyse syntaxique nous avons créer nos propres structures et fonctions, que nous avons enregistrer dans les fichiers tree_abs.h et tree_abs.c.
+
+Nous avons décider de tous stocker dans un seul arbre, pour cela nous avons créé plusieurs strutures :
+
+Afin de définir le type d'une expression nous avons créé la structure "type_exp" contenant :
+	- la profondeur nommé "depth" qui contient le nombre d'élément contenue dans le tableaux suivant
+	- le tableaux nommé "type" qui contient le type d'une expression (utilise une enumération "type_expression" {T_array, T_bool, T_int})
+Par exemble :
+	- pour un entier "depth" vaut 1 et "type" vaut {T_int}
+	- pour un tableaux de tableaux de boolean "depth" vaut 3 et "type" vaut {T_array, T_array, T_bool}
+
+Pour stocker l'arbre nous avons créé la structure "tree" contenant :
+	- une définition nommé "def" qui permet de savoir à quoi vont correspondre ces fils et quel opration nous devrons faire dessus, utilise une énumération "define" contenant la liste définitions possible
+	- un type nommé "type" qui permet de définir le type de l'expression
+	- le nombre de fils nommé "nb_sons" qui permet de savoir combien il à de fils
+	- un tableaux de fils nommé "sons" qui contient les fils
+	
+Pour contenir la définition d'une variable nous avons créé la structure "var" contenant :
+	- un nom nommé "name" contenant le nom de la variable
+	- un type nommé "type" qui correspond au type de la variable
+	
+Pour contenir les valeurs constante dans le programme nous avons créé la structure "val" contenant :
+	- une définition nommé "def" qui permet des savoir si c'est un nombre, une variable ou un boolean (true ou false) et qui utilise une énumation "type_value" {Bool, Int, Var}
+	- un paramètre nommé param qui contient sous la forme d'entier soit le nombre ou le boolean, ou sous la forme d'une chaine de caractère le nom de la variable
+
+Ensuite nous avons créé plusieurs fonctions afin d'utiliser ces structure qui sont appellé lors de l'analyse syntaxique afin de récupéré toutes les informations. 
+
+\section{analyse sémantique}
+Pour l'analyse sémantique nous avons créé des fonctions fonctions dans tree_abs.c qui permettent de faire l'analyse du code.
+Pour cela une fois l'analyse syntaxique finis il suffit d'appeller la fonction "analyze" avec en paramètre l'arbre générer par l'analyse syntaxique et qui retourne le nombre d'erreur sémantique dans le programme.
+Si lors de l'analyse il y a une ou plusieurs erreur alors nous affichons de quel type d'erreur dont il s'agit et l'opérations qui provoque cette erreur.
+
+\section{interprétation du Pseudo-Pascal}
+Pour l'interpréteur du code en Pseudo-Pascal nous avons créé nos propes structures et fonctions, que nous avons enregistrer dans les fichiers interp.h et interp.c.
+
+Nous avons alors définit une structure "env" pour contenir les variables, elle contient :
+	- le nom de la variable nommé "name"
+	- le type de la variable nommé "type"
+	- la valeur nommé "value"
+	- l'élément suivant nommé "next"
+	
+Et pour stocker les valeurs des tableaux nous avons créér la structure "heap" contenant :
+	- les adresses nommé "address" sous la forme d'un tableau d'entier
+	- la taille des tableaux nommé "size" sous la forme d'un tableau d'entier
+	- les cellule de chaque tableaux nommé "memory" sous la forme d'une tableau d'entier
+	- la première case disponible du tableau des adresses nommé "last_address"
+	- la première case disponible du tableau des des cellule nommé "last_memory"
+	- le nombre d'erreur d'accèes mémoire nommé "error"
+	
+Puis nous avons créé plusieurs fonctions afin d'utiliser ces structures qui sont appellé lors de l'interprétaion du code Pseudo-Pascal.
+
+\section{Traduction en C3A}
+Pour la traduction du code en Pseudo-Pascal en C3A nous avons créé nos propes structures et fonctions, que nous avons enregistrer dans les fichiers translate.h et translate.c.
+
+Nous avons alors définit une strutures "cell" qui correspond à une ligne de code C3A, contenant :
+	- l'étiquette nommé "name"
+	- l'opération C3A nommé "def" qui utilise une énumération "c3a" contenant la liste des opérations C3A
+	- l'argument 1 nommé "arg1"
+	- l'argument 2 nommé "arg2"
+	- la destination nommé "res"
+	
+Et une structure "list" qui contient la première et la dernière cellule C3A de la liste.
+
+Puis nous avons créé plusieurs fonctions afin d'utiliser ces structures qui sont appellé lors de la traduction du code Pseudo-Pascal en C3A.
+
+\section{interprétation du C3A}
+
+
+\end{document}
