@@ -107,21 +107,24 @@ list translate_pp_code(tree code, int* et, int* ct, int* va, tree lfunc){
       sprintf(name, "ET%d", (*et)++);
       concat_list(l, init_cell(name, c_Sk, NULL, NULL, res));
       jp->res = strdup(name);
+      free(res);
+      free(name);
       return l;
       break;
     case Not:
       name = alloc_string();
       sprintf(name, "ET%d", (*et)++);
       l = translate_pp_code(code->sons[0], et, ct, va, lfunc);
-      arg1 = strdup(l->end->res);
+      arg1 = l->end->res;
       res = alloc_string();
       sprintf(res, "VA%d", (*va)++);
       concat_list(l, init_cell(name, c_Not, arg1, NULL, res));
+      free(name);
+      free(res);
       return l;
       break;
     case Call:
-      l = translate_pp_call(code, et, ct, va, lfunc);
-      return l;
+      return translate_pp_call(code, et, ct, va, lfunc);
       break;
     case NewAr:
       l = translate_pp_code(code->sons[1], et, ct, va, lfunc);
@@ -137,6 +140,9 @@ list translate_pp_code(tree code, int* et, int* ct, int* va, tree lfunc){
       concat_list(l, init_cell(name, c_Pl, "L_TAB#", arg2, "L_TAB#"));
       sprintf(name, "ET%d", (*et)++);
       concat_list(l, init_cell(name, c_Sk, NULL, NULL, arg1));
+      free(name);
+      free(arg1);
+      free(res);
       return l;
       break;
     case Tab:
@@ -148,12 +154,13 @@ list translate_pp_code(tree code, int* et, int* ct, int* va, tree lfunc){
       return l;
       break;
     case Af:
-      arg1 = strdup(code->sons[0]);
+      arg1 = code->sons[0];
       l = translate_pp_code(code->sons[1], et, ct, va, lfunc);
-      arg2 = strdup(l->end->res);
+      arg2 = l->end->res;
       name = alloc_string();
       sprintf(name, "ET%d", (*et)++);
       concat_list(l, init_cell(name, c_Af, arg1, arg2, NULL));
+      free(name);
       return l;
       break;
     case AfTab:
@@ -166,12 +173,15 @@ list translate_pp_code(tree code, int* et, int* ct, int* va, tree lfunc){
       name = alloc_string();
       sprintf(name, "ET%d", (*et)++);
       concat_list(l, init_cell(name, c_AfInd, arg1, arg2, res));
+      free(name);
       return l;
       break;
     case Sk:
       name = alloc_string();
       sprintf(name, "ET%d", (*et)++);
-      return init_cell(name, c_Sk, NULL, NULL, NULL);
+      l = init_cell(name, c_Sk, NULL, NULL, NULL);
+      free(name);
+      return l;
       break;
     case If:
       l = translate_pp_code(code->sons[0], et, ct, va, lfunc);
@@ -189,6 +199,7 @@ list translate_pp_code(tree code, int* et, int* ct, int* va, tree lfunc){
       sprintf(name, "ET%d", (*et)++);
       jp->res = strdup(name);
       concat_list(l, init_cell(name, c_Sk, NULL, NULL, NULL));
+      free(name);
       return l;
       break;
     case Wh:
@@ -204,6 +215,7 @@ list translate_pp_code(tree code, int* et, int* ct, int* va, tree lfunc){
       sprintf(name, "ET%d", (*et)++);
       jz->res = strdup(name);
       concat_list(l, init_cell(name, c_Sk, NULL, NULL, NULL));
+      free(name);
       return l;
       break;
     case Val:
@@ -211,13 +223,19 @@ list translate_pp_code(tree code, int* et, int* ct, int* va, tree lfunc){
       sprintf(name, "ET%d", (*et)++);
       val v = code->sons[0];
       if(v->def == Var){
-	return init_cell(name, c_Sk, NULL, NULL, strdup(v->param.name));
+	l = init_cell(name, c_Sk, NULL, NULL, v->param.name);
+	free(name);
+	return l;
       }
       arg1 = alloc_string();
       res = alloc_string();
       sprintf(arg1, "%d", v->param.val);
       sprintf(res, "CT%d", (*ct)++);
-      return init_cell(name, c_Afc, arg1, NULL, res);
+      l = init_cell(name, c_Afc, arg1, NULL, res);
+      free(name);
+      free(arg1);
+      free(res);
+      return l;
       break;
     }
 }
@@ -249,12 +267,14 @@ list translate_pp_operation(tree code, int* et, int* ct, int* va, tree lfunc){
       break;
     }
   list l = translate_pp_code(code->sons[0], et, ct, va, lfunc);
-  char* arg1 = strdup(l->end->res);
+  char* arg1 = l->end->res;
   concat_list(l, translate_pp_code(code->sons[1], et, ct, va, lfunc));
-  char* arg2 = strdup(l->end->res);
+  char* arg2 = l->end->res;
   sprintf(name, "ET%d", (*et)++);
   sprintf(res, "VA%d", (*va)++);
   concat_list(l, init_cell(name, def, arg1, arg2, res));
+  free(name);
+  free(res);
   return l;
 }
 
@@ -274,6 +294,8 @@ list translate_pp_tab(tree tab, int depth, int* et, int* ct, int* va, tree lfunc
     concat_list(l, init_cell(name, c_Ind, arg1, arg2, res));
     arg1 = l->end->res;
   }
+  free(name);
+  free(res);
   return l;
 }
 
@@ -296,6 +318,9 @@ list translate_pp_call(tree call, int* et, int* ct, int* va, tree lfunc){
   arg2 = alloc_string();
   sprintf(arg2, "%d", args->nb_sons);
   concat_list(l, init_cell(name, c_Call, call->sons[0], arg2, res));
+  free(name);
+  free(res);
+  free(arg2);
   return l;
 }
 

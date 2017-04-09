@@ -81,14 +81,14 @@ int add_type(type_exp tp, enum type_expression type){
   return EXIT_SUCCESS;
 }
 
-int add_son(tree pere, void *son){
-  switch (pere->def)
+int add_son(tree s, void *son){
+  switch (s->def)
     {
     case Sk:
       return EXIT_FAILURE;
     case Not:
     case Val:
-      if(pere->nb_sons == 1)
+      if(s->nb_sons == 1)
 	return EXIT_FAILURE;
       break;
     case Call:
@@ -104,19 +104,19 @@ int add_son(tree pere, void *son){
     case And:
     case Se:
     case Wh:
-      if(pere->nb_sons == 2)
+      if(s->nb_sons == 2)
 	return EXIT_FAILURE;
       break;
     case Mp:
     case If:
     case Func:
-      if(pere->nb_sons == 3)
+      if(s->nb_sons == 3)
 	return EXIT_FAILURE;
       break;
     }
-  pere->nb_sons += 1;
-  pere->sons = realloc(pere->sons, sizeof(void *) * pere->nb_sons);
-  pere->sons[pere->nb_sons - 1] = son;
+  s->nb_sons += 1;
+  s->sons = realloc(s->sons, sizeof(void *) * s->nb_sons);
+  s->sons[s->nb_sons - 1] = son;
   return EXIT_SUCCESS;
 }
 
@@ -324,6 +324,19 @@ void define_type_val(tree s, tree code, tree func, int* error){
   }
 }
 
+void analize_list_vart(tree s, int* error){
+  if(s->def != Lvart)
+    return;
+  for(int i = 0; i < s->nb_sons; i++){
+    for(int j = i + 1; j < s->nb_sons; j++){
+      if(strcmp(((var)s->sons[i])->name, ((var)s->sons[j])->name) == 0){
+	printf("VARERROR : variable déja définie dans la liste : %s\n", ((var)s->sons[j])->name);
+	*error += 1;
+      }
+    }
+  }
+}
+
 void analize_code(tree s, tree code, tree func, int* error){
   switch (code->def)
     {
@@ -434,19 +447,6 @@ void analize_code(tree s, tree code, tree func, int* error){
 	error_analize("condition de type boolean attendue", code, error);
       break;
     }
-}
-
-void analize_list_vart(tree s, int* error){
-  if(s->def != Lvart)
-    return;
-  for(int i = 0; i < s->nb_sons; i++){
-    for(int j = i + 1; j < s->nb_sons; j++){
-      if(strcmp(((var)s->sons[i])->name, ((var)s->sons[j])->name) == 0){
-	printf("VARERROR : variable déja définie dans la liste : %s\n", ((var)s->sons[j])->name);
-	*error += 1;
-      }
-    }
-  }
 }
 
 void analize_function(tree s, int* error){

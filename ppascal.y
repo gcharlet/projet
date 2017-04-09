@@ -1,7 +1,10 @@
 %{
+  #define _XOPEN_SOURCE 500
   #include <stdio.h>
   #include <stdlib.h>
   #include <string.h>
+  #include <fcntl.h>
+  #include <unistd.h>
   #include "tree_abs.h"
   #include "interp.h"
   #include "translate.h"
@@ -124,8 +127,10 @@ void main(){
   yyparse();
   if(s == NULL)
     return;
+  //affichage de l'analyse syntaxique
   display_tree(s);
 
+  //analyse sémantique
   int error = analize(s);
   if(error != 0){
     free_tree(s);
@@ -134,26 +139,41 @@ void main(){
 
   env G = NULL;
   heap H = NULL;
-  interp_pp(&G, &H, s);
-  display_env_heap(G, H);
-  if(H->error != 0){
-    free_env(G);
+  
+  //interpretation du code Pseudo-pascal et affichage de l'environnement gloabale
+  error = interp_pp(&G, &H, s);
+  printf("Variables d'environnement globale du Pseudo-Pascal\n");
+  display_env_heap_pp(G, H);
+  printf("Fin d'environnement globale du Pseudo-Pascal\n");
+  if(H != NULL)
     free_heap(H);
+  if(error != 0){
+    if(G != NULL)
+      free_env(G);
     return;
   }
-  free_env(G);
-  free_heap(H);
 
+  //traduction du code en C3A
   printf("\n");
   list l = translate_pp(s);
-  display_list(l);
   free_tree(s);
 
-  G = NULL;
-  H = NULL;
-  interp_c3a (&G, &H, l);
-  printf("\n");
-  display_env_heap(G, H);
+  //ecriture du code C3A dans le fichier TRANSLATE_C3A.c3a
+  int fd = open("TRANSALATE_C3A.c3a", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+  int terminal = dup(1);
+  dup2(fd, 1);
+  display_list(l);
+  dup2(terminal, 1);
 
+  //interpretation du code C3A et affichage de l'environmment globale ainsi que des valeurs stocké pour les tableaux
+  int* T = NULL;
+  reset_value(G);
+  interp_c3a(&G, &T, l);
+  display_env_c3a(G);
+  display_tab_c3a(T, value_env(G, "L_TAB#"));
+
+  free(T);
+  free_env(G);
+  
   free_list(l);
 }

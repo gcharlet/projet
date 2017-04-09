@@ -23,7 +23,6 @@ env init_env(env e, char* name, type_exp type){
   tmp->name = strdup(name);
   tmp->type = copy_type_exp(type);
   tmp->value = 0;
-  tmp->next = NULL;
   tmp->next = e;
   return tmp;
 }
@@ -39,9 +38,17 @@ env init_env_list(tree s){
   return e;
 }
 
-env init_env_int(env e, char* name) {
-  type_exp t = init_type_exp (T_int);
-  return init_env (e, name, t);
+env init_env_c3a(env e, char* name) {
+  return init_env (e, name, NULL);
+}
+
+env init_env_p(env p, char* name, int value){
+  env tmp = alloc_env();
+  tmp->name = strdup(name);
+  tmp->value = value;
+  tmp->next = p;
+  tmp->type = NULL;
+  return tmp;
 }
   
 heap init_heap(int space_address, int space_memory){
@@ -77,6 +84,14 @@ cell unstack (pile* p) {
   *p = (*p)->next;
   free(tmp);
   return c;
+}
+
+void reset_value(env e){
+  env tmp = e;
+  while(tmp != NULL){
+    tmp->value = 0;
+    tmp = tmp->next;
+  }
 }
 
 env concat_env(env e1, env e2){
@@ -293,9 +308,9 @@ int operation_c3a(enum c3a op, int val1, int val2) {
     }
 }
 
-int interp_c3a(env *G, heap* H, list l){
-  heap h = init_heap(1000, 10000);
-  env g = NULL;
+void interp_c3a(env *G, int** T, list l){
+  int* t = malloc(sizeof(int) * 10000);
+  env g = *G;
   cell c = l->first;
   pile p = NULL;
   
@@ -303,11 +318,11 @@ int interp_c3a(env *G, heap* H, list l){
     switch (c->def) {
     case c_Sk:
       if(c->res != NULL)
-	g = init_env_int (g, c->res);
+	g = init_env_c3a(g, c->res);
       c = c->next;
       break;
     case c_Af:
-      g = init_env_int (g, c->arg1);
+      g = init_env_c3a(g, c->arg1);
       affect_env(g, c->arg1, value_env(g, c->arg2));
       c = c->next;
       break;
@@ -315,7 +330,7 @@ int interp_c3a(env *G, heap* H, list l){
       c = NULL;
       break;
     case c_Afc:
-      g = init_env_int (g, c->res);
+      g = init_env_c3a(g, c->res);
       affect_env (g, c->res, atoi(c->arg1));
       c = c->next;
       break;
@@ -325,7 +340,7 @@ int interp_c3a(env *G, heap* H, list l){
     case c_Or:
     case c_And:
     case c_Lt:
-      g = init_env_int (g, c->res);
+      g = init_env_c3a(g, c->res);
       affect_env (g, c->res, operation_c3a (c->def, value_env (g, c->arg1), value_env (g, c->arg2)));
       c = c->next;
       break;
@@ -365,16 +380,15 @@ int interp_c3a(env *G, heap* H, list l){
 
   }
 
-  *H = h;
+  *T = t;
   *G = g;
-  return h->error;
 }
 
-void display_tab(heap H, int add, int depth, enum define def){
+void display_tab_pp(heap H, int add, int depth, enum define def){
   for(int i = 0; i < H->size[add]; i++){
     if(depth != 1){
       printf("[%d] = {", i);
-      display_tab(H, value_heap(H, add, i), depth-1, def);
+      display_tab_pp(H, value_heap(H, add, i), depth-1, def);
       if( i+1 < H->size[add])
 	printf("}, ");
       else
@@ -390,9 +404,9 @@ void display_tab(heap H, int add, int depth, enum define def){
   }
 }
 
-void display_env_heap(env G, heap H){
+void display_env_heap_pp(env G, heap H){
   if(G != NULL){
-    display_env_heap(G->next, H);
+    display_env_heap_pp(G->next, H);
     if(G->type->depth == 1){
       if(G->type->type[0] == Int)
 	printf("var int %s = %d\n", G->name, G->value);
@@ -400,10 +414,37 @@ void display_env_heap(env G, heap H){
 	printf("var bool %s = %s\n", G->name, (G->value)?"true":"false");
     }else{
       printf("var array %s = {", G->name);
-      display_tab(H, G->value, G->type->depth-1, G->type->type[G->type->depth - 1]);
+      display_tab_pp(H, G->value, G->type->depth-1, G->type->type[G->type->depth - 1]);
       printf("}\n");
     }
   }
+}
+
+void display_env_c3a(env G){
+  if(G != NULL){
+    display_env_c3a(G->next);
+    if(G->type != NULL){
+      if(G->type->depth == 1){
+	if(G->type->type[0] == Int)
+	  printf("var int %s = %d\n", G->name, G->value);
+	else
+	  printf("var bool %s = %s\n", G->name, (G->value)?"true":"false");
+      }else{
+	printf("var array %s = %d\n", G->name, G->value);
+      }
+    } else
+      printf("var %s = %d\n", G->name, G->value);
+  }
+}
+
+void display_tab_c3a(int* T, int size){
+  printf("Valeur des tableaux = {");
+  for(int i = 1; i < size; i++){
+    printf("[%d] = %d", i, T[i]);
+    if(i+1 < size)
+      printf(", ");
+  }
+  printf("}\n");
 }
 
 void free_env(env e){
@@ -412,7 +453,8 @@ void free_env(env e){
     tmp = e;
     e = e->next;
     free(tmp->name);
-    free_type_exp(tmp->type);
+    if(tmp->type != NULL)
+      free_type_exp(tmp->type);
     free(tmp);
   }
 }
