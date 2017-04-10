@@ -1,3 +1,16 @@
+/* CHARLET Guillaume et GAUTIER Florian
+ * Question 1 :
+ * Fichier tree_abs.c, fonction yyparse();
+ * Question 2 :
+ * Fichier tree_abs.c, fonction analyze(tree s);
+ * Question 3 :
+ * Fichier interp.c, fonction interp_pp(env *G, heap *H, tree s);
+ * Question 4 :
+ * Fichier translate.c, fonction translate_pp(tree s);
+ * Question 5 :
+ * Fichier interp.c, fonction interp_c3a(env *G, int** T, list list);
+ */
+
 %{
   #define _XOPEN_SOURCE 500
   #include <stdio.h>
@@ -131,7 +144,7 @@ void main(){
   display_tree(s);
 
   //analyse sémantique
-  int error = analize(s);
+  int error = analyze(s);
   if(error != 0){
     free_tree(s);
     return;
@@ -159,7 +172,7 @@ void main(){
   free_tree(s);
 
   //ecriture du code C3A dans le fichier TRANSLATE_C3A.c3a
-  int fd = open("TRANSALATE_C3A.c3a", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+  int fd = open("TRANSLATE_C3A.c3a", O_WRONLY | O_CREAT | O_TRUNC, 0666);
   int terminal = dup(1);
   dup2(fd, 1);
   display_list(l);
@@ -169,11 +182,16 @@ void main(){
   int* T = NULL;
   reset_value(G);
   interp_c3a(&G, &T, l);
+  printf("Variables d'environnement globale du C3A\n");
   display_env_c3a(G);
   display_tab_c3a(T, value_env(G, "L_TAB#"));
+  printf("Fin d'environnement globale du C3A\n");
 
   free(T);
   free_env(G);
   
   free_list(l);
+
+  
 }
+

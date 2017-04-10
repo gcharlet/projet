@@ -22,6 +22,7 @@ typedef struct heap {
 
 typedef struct pile {
   cell c;
+  env l;
   struct pile* next;
 } *pile;
 
@@ -30,22 +31,22 @@ extern env alloc_env();
 extern heap alloc_heap();
 extern pile alloc_pile();
 
-//fonctions permettant de créé une instance des structures ci-dessus
+//fonctions permettant de créer une instance des structures ci-dessus
 extern env init_env(env e, char* name, type_exp type);
 extern env init_env_list(tree s);
 extern env init_env_c3a(env e, char* name);
 extern env init_env_p(env p, char* name, int value);
 extern heap init_heap(int space_address, int space_memory);
-//fonction qui permet d'empiler c et retourne la pile
-extern pile stack(cell c, pile daddy);
-//fonction qui permet de dépiler l'élément retourner a p
-extern cell unstack(pile *p);
-//fonction qui remet les valeurs à 0 d'une environement
+//fonction qui permet d'empiler c et la liste l puis retourne la pile
+extern pile stack(cell c, env l, pile daddy);
+//fonction qui permet de dépiler le premier élément de la pile puis de le retourner, et affecte à l l'environnement local de l'élement retourné
+extern cell unstack(pile *p, env *l);
+//fonction qui remet les valeurs d'un environnement à 0
 extern void reset_value(env e);
 
-//fonction qui permet de concatener deux environement
+//fonction qui permet de concatener deux environnement
 extern env concat_env(env e1, env e2);
-//fonction qui permet d'affectue une valeur à un élément de l'environement
+//fonction qui permet d'affecter une valeur à un élément de l'environement
 extern void affect_env(env e, char* name, int value);
 //fonction qui retourne l'environement a partir du nom passé en parametre
 extern env search_env(env e, char* name);
@@ -86,7 +87,7 @@ extern int interp_pp_call(env G, heap H, env E, tree call, tree lfunc);
 
 //fonctions utilisé pour interprété le code C3A
 
-extern void interp_c3a(env *G, int** T, list l);
+extern void interp_c3a(env *G, int** T, list list);
 extern int operation_c3a(enum c3a op, int val1, int val2);
 
 //fonctions permetant l'affichage de l'environement souhaité

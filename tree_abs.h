@@ -67,9 +67,9 @@ extern void display_val(val v);
 //fonctions utilisé pour l'analyse sémantique
 
 //fonction appellé pour faire l'analyse sémantique de l'abre s
-extern int analize(tree s);
+extern int analyze(tree s);
 //fonction qui affiche une erreur sémantique et ajoute 1 à la variable error
-extern void error_analize(char* s, tree exp, int* error);
+extern void error_analyze(char* s, tree exp, int* error);
 //fonction qui retourne la copy du type passé en parametre
 extern type_exp copy_type_exp(type_exp t);
 //fonction qui retourne le type de la variable 'name' soit dans l'envrionnement locale func ou dans l'environnement globale s
@@ -81,15 +81,15 @@ extern int verif_call(tree s, tree call, tree func, int* error);
 //fonction qui définie le type d'un tree ou def = "Val" en fonction de son fils de structure 'val'
 extern void define_type_val(tree s, tree code, tree func, int* error);
 //fonction qui analyse une liste de variable afin de vérifié qu'il n'y a pas de redefinition
-extern void analize_list_vart(tree s, int* error);
+extern void analyze_list_vart(tree s, int* error);
 //fonction qui analyse un code ou une partie qui prend en parametre
 //s qui est le sommet de l'arbre afin d'avoir les variable globale et la liste des fonction
 //code qui est le code évalué
 //func si NULL signifie que le code évalué est le programme principale, sinon le code évalué est dans une fonction
 //error est le nombre d'erreur trouvé
-extern void analize_code(tree s, tree code, tree func, int* error);
+extern void analyze_code(tree s, tree code, tree func, int* error);
 //fonction qui analyse une fonction avec 's' qui est le sommet de l'arbre afin d'avoir les variable globale et la liste des fonction et error le nombre d'erreur
-extern void analize_function(tree s, int* error);
+extern void analyze_function(tree s, int* error);
 
 //fonctions qui libère l'espace mémoire réservé pour les structures
 extern void free_tree(tree s);

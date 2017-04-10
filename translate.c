@@ -137,7 +137,10 @@ list translate_pp_code(tree code, int* et, int* ct, int* va, tree lfunc){
       res = alloc_string();
       sprintf(res, "CT%d", (*ct)++);
       sprintf(name, "ET%d", (*et)++);
-      concat_list(l, init_cell(name, c_Pl, "L_TAB#", arg2, "L_TAB#"));
+      sprintf(res, "VA%d", (*va)++);
+      concat_list(l, init_cell(name, c_Pl, "L_TAB#", arg2, res));
+      sprintf(name, "ET%d", (*et)++);
+      concat_list(l, init_cell(name, c_Af, "L_TAB#", res, NULL));
       sprintf(name, "ET%d", (*et)++);
       concat_list(l, init_cell(name, c_Sk, NULL, NULL, arg1));
       free(name);

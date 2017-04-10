@@ -228,7 +228,7 @@ void display_val(val v){
     }
 }
 
-void error_analize(char* s, tree exp, int* error){
+void error_analyze(char* s, tree exp, int* error){
   printf("TYPEERROR: %s : ", s);
   display_tree(exp);
   printf("\n");
@@ -298,7 +298,7 @@ int verif_call(tree s, tree call, tree func, int* error){
   if(argt->nb_sons != ((tree)call->sons[1])->nb_sons)
     return -1;
   for(int i = 0; i < argt->nb_sons; i++){
-    analize_code(s, ((tree)call->sons[1])->sons[i], func, error);
+    analyze_code(s, ((tree)call->sons[1])->sons[i], func, error);
     if(verif_type_exp(((var)argt->sons[i])->type, ((tree)((tree)call->sons[1])->sons[i])->type) == 0)
       return 0;
   }
@@ -324,7 +324,7 @@ void define_type_val(tree s, tree code, tree func, int* error){
   }
 }
 
-void analize_list_vart(tree s, int* error){
+void analyze_list_vart(tree s, int* error){
   if(s->def != Lvart)
     return;
   for(int i = 0; i < s->nb_sons; i++){
@@ -337,7 +337,7 @@ void analize_list_vart(tree s, int* error){
   }
 }
 
-void analize_code(tree s, tree code, tree func, int* error){
+void analyze_code(tree s, tree code, tree func, int* error){
   switch (code->def)
     {
     case Val:
@@ -356,11 +356,11 @@ void analize_code(tree s, tree code, tree func, int* error){
 	*error += 1;
       }
       if(j == 0)
-	error_analize("type args diférents de la définition de la fonction", code, error);
+	error_analyze("type args diférents de la définition de la fonction", code, error);
       return;
       break;
     case NewAr:
-      analize_code(s, code->sons[1], func, error);
+      analyze_code(s, code->sons[1], func, error);
       type_exp ar = code->sons[0];
       int i = ar->depth - 1;
       code->type = init_type_exp(ar->type[i]);
@@ -368,7 +368,7 @@ void analize_code(tree s, tree code, tree func, int* error){
 	add_type(code->type, ar->type[i]);
       add_type(code->type, T_array);
       if(((tree)code->sons[1])->type == NULL || ((tree)code->sons[1])->type->type[0] != T_int)
-	error_analize("taille de type non-entier", code, error);
+	error_analyze("taille de type non-entier", code, error);
       return;
       break;
     case Tab:
@@ -380,13 +380,13 @@ void analize_code(tree s, tree code, tree func, int* error){
 	*error += 1;
       }
       for(int i = 1; i < code->nb_sons; i++){
-	analize_code(s, code->sons[i], func, error);
+	analyze_code(s, code->sons[i], func, error);
 	nb--;
 	if(((tree)code->sons[i])->type == NULL || ((tree)code->sons[i])->type->type[0] != T_int)
-	  error_analize("index non-entier dans un tableau", code->sons[i], error);
+	  error_analyze("index non-entier dans un tableau", code->sons[i], error);
       }
       if(nb <= 0){
-	error_analize("trop d'index par rapport à la définition du tableau", code, error);
+	error_analyze("trop d'index par rapport à la définition du tableau", code, error);
 	code->type = NULL;
       }else{
 	code->type = init_type_exp(tab->type[tab->depth - 1]);
@@ -396,16 +396,16 @@ void analize_code(tree s, tree code, tree func, int* error){
       return;
       break;
     case Af:
-      analize_code(s, code->sons[1], func, error);
+      analyze_code(s, code->sons[1], func, error);
       type_exp t = type_def_var(s->sons[0], code->sons[0], func);
       if(t == NULL || verif_type_exp(t, ((tree)code->sons[1])->type) == 0)
-	error_analize("affectation de type incoherents", code, error);
+	error_analyze("affectation de type incoherents", code, error);
       return;
       break;
     }
   
   for(int i = 0; i < code->nb_sons; i++)
-    analize_code(s, code->sons[i], func, error);
+    analyze_code(s, code->sons[i], func, error);
   
   switch (code->def)
     {
@@ -414,55 +414,55 @@ void analize_code(tree s, tree code, tree func, int* error){
     case Mo:
       code->type = init_type_exp(T_int);
       if(verif_type_exp(((tree)code->sons[0])->type, code->type) == 0 || verif_type_exp(((tree)code->sons[1])->type, code->type) == 0)
-	error_analize("op entier sur args non-entiers", code, error);
+	error_analyze("op entier sur args non-entiers", code, error);
       break;
     case Or:
     case And:
       code->type = init_type_exp(T_bool);
       if(verif_type_exp(((tree)code->sons[0])->type, code->type) == 0 || verif_type_exp(((tree)code->sons[1])->type, code->type) == 0)
-	error_analize("op boolean sur args non-boolean", code, error);
+	error_analyze("op boolean sur args non-boolean", code, error);
       break;
     case Not:
       code->type = init_type_exp(T_bool);
       if(verif_type_exp(((tree)code->sons[0])->type, code->type) == 0)
-	error_analize("op boolean sur args non-boolean", code, error);
+	error_analyze("op boolean sur args non-boolean", code, error);
       break;
     case Lt:
       code->type = init_type_exp(T_bool);
       if(((tree)code->sons[0])->type == NULL || ((tree)code->sons[0])->type->type[0] != T_int || verif_type_exp(((tree)code->sons[0])->type, ((tree)code->sons[1])->type) == 0)
-	error_analize("op boolean sur args non-entier", code, error);
+	error_analyze("op boolean sur args non-entier", code, error);
       break;
     case Eq:
       code->type = init_type_exp(T_bool);
       if(((tree)code->sons[1])->type == NULL || verif_type_exp(((tree)code->sons[0])->type, ((tree)code->sons[1])->type) == 0)
-	error_analize("op boolean sur args de differents type", code, error);
+	error_analyze("op boolean sur args de differents type", code, error);
       break;
     case AfTab:
       if(((tree)code->sons[0])->type == NULL || verif_type_exp(((tree)code->sons[0])->type, ((tree)code->sons[1])->type) == 0)
-	error_analize("affectation de type incoherents", code, error);
+	error_analyze("affectation de type incoherents", code, error);
       break;
     case If:
     case Wh:
       if(((tree)code->sons[0])->type == NULL || ((tree)code->sons[0])->type->type[0] != T_bool)
-	error_analize("condition de type boolean attendue", code, error);
+	error_analyze("condition de type boolean attendue", code, error);
       break;
     }
 }
 
-void analize_function(tree s, int* error){
+void analyze_function(tree s, int* error){
   tree lfunc = s->sons[1];
   for(int i = 0; i < lfunc->nb_sons; i++){
-    analize_list_vart(((sign)((tree)lfunc->sons[i])->sons[0])->argt, error);
-    analize_list_vart(((tree)lfunc->sons[i])->sons[1], error);
-    analize_code(s, ((tree)lfunc->sons[i])->sons[2], lfunc->sons[i], error);
+    analyze_list_vart(((sign)((tree)lfunc->sons[i])->sons[0])->argt, error);
+    analyze_list_vart(((tree)lfunc->sons[i])->sons[1], error);
+    analyze_code(s, ((tree)lfunc->sons[i])->sons[2], lfunc->sons[i], error);
   }
 }
 
-int analize(tree s){
+int analyze(tree s){
   int error = 0;
-  analize_list_vart(s->sons[0], &error);
-  analize_function(s, &error);
-  analize_code(s, s->sons[2], NULL, &error);
+  analyze_list_vart(s->sons[0], &error);
+  analyze_function(s, &error);
+  analyze_code(s, s->sons[2], NULL, &error);
   if(error == 0)
     printf("Analyse sémantique validé\n\n");
   return error;

@@ -68,20 +68,22 @@ heap init_heap(int space_address, int space_memory){
   return h;
 }
 
-pile stack(cell c, pile daddy) {
+pile stack(cell c, env l, pile daddy) {
   pile p = alloc_pile();
   p->next = daddy;
+  p->l = l;
   p->c = c;
   return p;
 }
 
-cell unstack (pile* p) {
+cell unstack (pile* p, env *l) {
   if (p == NULL)
     return NULL;
   
   cell c = (*p)->c;
   pile tmp = *p;
-  *p = (*p)->next;
+  *l = tmp->l;
+  *p = tmp->next;
   free(tmp);
   return c;
 }
@@ -308,30 +310,41 @@ int operation_c3a(enum c3a op, int val1, int val2) {
     }
 }
 
-void interp_c3a(env *G, int** T, list l){
+void interp_c3a(env *G, int** T, list list){
   int* t = malloc(sizeof(int) * 10000);
   env g = *G;
-  cell c = l->first;
-  pile p = NULL;
+  cell c = list->first;
+  pile pile = NULL;
+  env p = NULL;
+  env l = NULL;
+  int ret = 0;
+  env tmp;
+
+  g = init_env_c3a(g, c->res);
+  affect_env(g, c->res, atoi(c->arg1));
+  c = c->next;
   
   while(c != NULL){
     switch (c->def) {
     case c_Sk:
-      if(c->res != NULL)
-	g = init_env_c3a(g, c->res);
+      if(c->res != NULL && search_env(g, c->res) == NULL)
+	l = init_env_c3a(l, c->res);
       c = c->next;
       break;
     case c_Af:
-      g = init_env_c3a(g, c->arg1);
-      affect_env(g, c->arg1, value_env(g, c->arg2));
+      if(search_env(g, c->arg1) == NULL){
+	l = init_env_c3a(l, c->arg1);
+	affect_env(l, c->arg1, value_env_pp(g, l, c->arg2));
+      } else 
+	affect_env(g, c->arg1, value_env_pp(g, l, c->arg2));
       c = c->next;
       break;
     case c_St:
       c = NULL;
       break;
     case c_Afc:
-      g = init_env_c3a(g, c->res);
-      affect_env (g, c->res, atoi(c->arg1));
+      l = init_env_c3a(l, c->res);
+      affect_env (l, c->res, atoi(c->arg1));
       c = c->next;
       break;
     case c_Pl:
@@ -340,46 +353,66 @@ void interp_c3a(env *G, int** T, list l){
     case c_Or:
     case c_And:
     case c_Lt:
-      g = init_env_c3a(g, c->res);
-      affect_env (g, c->res, operation_c3a (c->def, value_env (g, c->arg1), value_env (g, c->arg2)));
+      l = init_env_c3a(l, c->res);
+      affect_env (l, c->res, operation_c3a(c->def, value_env_pp(g, l, c->arg1), value_env_pp(g, l, c->arg2)));
       c = c->next;
       break;
     case c_Jz:
-      if (value_env (g, c->arg1) == 0) {
-	c = search_cell (l, c->res);
+      if (value_env_pp(g, l, c->arg1) == 0) {
+	c = search_cell(list, c->res);
       }
       else {
 	c = c->next;
       }
       break;
     case c_Jp:
-      c = search_cell (l, c->res);
+      c = search_cell(list, c->res);
       break;
     case c_Not:
+      l = init_env_c3a(l, c->res);
+      affect_env(l, c->res, (value_env_pp(g, l, c->arg1))?0:1);
       c = c->next;
       break;
     case c_Ind:
+      l = init_env_c3a(l, c->res);
+      affect_env(l, c->res, t[value_env_pp(g, l, c->arg1) + value_env_pp(g, l, c->arg2)]);
       c = c->next;
       break;
     case c_AfInd:
+      t[value_env_pp(g, l, c->arg1) + value_env_pp(g, l, c->arg2)] = value_env_pp(g, l, c->res);
       c = c->next;
       break;
     case c_Param:
+      p = init_env_p (p, c->arg1, value_env_pp(g, l, c->arg2));
       c = c->next;
       break;
     case c_Call:
-      p = stack(c->next, p);
-      c = search_cell(l, c->arg1);
-      //d'autres trucs à faire
-      
+      pile = stack(c, l, pile);
+      l = NULL;
+      l = p;
+      for(int i = 0; i < atoi(c->arg2); i++){
+	tmp = p->next;
+	if(i + 1 == atoi(c->arg2))
+	  p->next = NULL;
+	p = tmp;
+      }
+      c = search_cell(list, c->arg1);
       break;
     case c_Ret:
-      c = unstack (&p);
+      tmp = l;
+      c = unstack(&pile, &l);
+      ret = value_env(tmp, c->arg1);
+      free_env(tmp);
+      l = init_env_c3a(l, c->res);
+      affect_env(l, c->res, ret);
+      c = c->next;
       break;
     }
 
   }
 
+  if (l != NULL)
+    free_env(l);
   *T = t;
   *G = g;
 }
