@@ -177,6 +177,7 @@ void main(){
   dup2(fd, 1);
   display_list(l);
   dup2(terminal, 1);
+  close(fd);
 
   //interpretation du code C3A et affichage de l'environmment globale ainsi que des valeurs stocké pour les tableaux
   int* T = NULL;
