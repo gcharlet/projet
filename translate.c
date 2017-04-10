@@ -307,7 +307,7 @@ list translate_pp_call(tree call, int* et, int* ct, int* va, tree lfunc){
   tree args = call->sons[1];
   tree argt = argt_function_pp(lfunc, call->sons[0]);
   name = alloc_string();
-  for(int i = 0; i < args->nb_sons; i++){
+  for(int i = args->nb_sons-1; i >= 0 ; i--){
     concat_list(l, translate_pp_code(args->sons[i], et, ct, va, lfunc));
     sprintf(name, "ET%d", (*et)++);
     concat_list(l, init_cell(name, c_Param, ((var)argt->sons[i])->name, l->end->res, NULL));
@@ -335,6 +335,15 @@ tree argt_function_pp(tree lfunc, char* name){
     return NULL;
   return v->argt;
 }
+
+/*list translate_c3a(list l){
+  cell c = l->first;
+  return NULL;
+}
+
+list translate_operation_c3a(cell c, env e){
+  return NULL;
+  }*/
 
 char* list_c3a[] = {"", "Pl", "Mo", "Mu", "And", "Or", "Lt", "Ind", "Not", "Af", "Afc", "AfInd", "Sk", "Jp", "Jz", "St", "Param", "Call", "Ret"};
 

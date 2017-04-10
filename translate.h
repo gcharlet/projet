@@ -34,7 +34,7 @@ extern cell search_cell(list l, char* name);
 //fonction qui permet de concaténer deux listes
 extern void concat_list(list l1, list l2);
 
-//fonction sutilisé pour traduire le code Pseudo-pascal en C3A
+//fonctions utilisé pour traduire le code Pseudo-pascal en C3A
 
 //fontion qui retourne le code C3A et qui prend en parametre l'abre Pseudo-Pascal
 extern list translate_pp(tree s);
@@ -66,6 +66,11 @@ extern list translate_pp_tab(tree tab, int depth, int* et, int* ct, int* va, tre
 extern list translate_pp_call(tree call, int* et, int* ct, int* va, tree lfunc);
 //fonction qui retourne la fonction corespondant au nom dans la liste des focntions
 extern tree argt_function_pp(tree lfunc, char* name);
+
+//fonctions utilisé pour traduire le C3A en Y86
+
+//extern list translate_c3a(list l);
+//extern list translate_operation_c3a(cell c, env e);
 
 //fonction qui permet l'affichage d'une liste
 extern void display_list(list l);
