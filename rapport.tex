@@ -48,7 +48,7 @@ Pour réaliser ce projet nous devions être par groupe d'au plus 4 étudiants, e
 
 \newpage
 
-\section{Description des différents point à réaliser lors du projet}
+\section{Description des différents point à réaliser lors de ce projet}
 \subsection{Analyse syntaxique}
 Pour stocker la programme lors de l'analyse syntaxique nous avons créer nos propres structures et fonctions, que nous avons enregistrer dans les fichiers tree\_abs.h et tree\_abs.c.\\
 
@@ -57,10 +57,12 @@ Nous avons décider de tous stocker dans un seul arbre, pour cela nous avons cr�
 Afin de définir le type d'une expression nous avons créé la structure "type\_exp" contenant :
 \begin{itemize}
 \item la profondeur nommé "depth" qui contient le nombre d'élément contenue dans le tableaux suivant
-\item le tableaux nommé "type" qui contient le type d'une expression (utilise une enumération "type\_expression" {T\_array, T\_bool, T\_int})
+\item le tableaux nommé "type" qui contient le type d'une expression, utilise une enumération "type\_expression" \{T\_array, T\_bool, T\_int\}
+\end{itemize}
 Par exemble :
-\item pour un entier "depth" vaut 1 et "type" vaut {T\_int}
-\item pour un tableaux de tableaux de boolean "depth" vaut 3 et "type" vaut {T\_array, T\_array, T\_bool}
+\begin{itemize}
+\item pour un entier "depth" vaut 1 et "type" vaut \{T\_int\}
+\item pour un tableaux de tableaux de boolean "depth" vaut 3 et "type" vaut \{T\_array, T\_array, T\_bool\}
 \end{itemize}
 \bigskip
 
@@ -82,7 +84,7 @@ Pour contenir la définition d'une variable nous avons créé la structure "var"
 
 Pour contenir les valeurs constante dans le programme nous avons créé la structure "val" contenant :
 \begin{itemize}
-\item une définition nommé "def" qui permet des savoir si c'est un nombre, une variable ou un boolean (true ou false) et qui utilise une énumation "type\_value" {Bool, Int, Var}
+\item une définition nommé "def" qui permet des savoir si c'est un nombre, une variable ou un boolean (true ou false) et qui utilise une énumation "type\_value" \{Bool, Int, Var\}
 \item un paramètre nommé "param" qui contient sous la forme d'entier soit le nombre ou le boolean, ou sous la forme d'une chaine de caractère le nom de la variable
 \end{itemize}
 \bigskip
@@ -136,9 +138,50 @@ Nous avons alors définit une strutures "cell" qui correspond à une ligne de co
 
 Et une structure "list" qui contient la première et la dernière cellule C3A de la liste.\\
 
-Puis nous avons créé plusieurs fonctions afin d'utiliser ces structures qui sont appellé lors de la traduction du code Pseudo-Pascal en C3A.
+Puis nous avons créé plusieurs fonctions afin d'utiliser ces structures qui sont appellé lors de la traduction du code Pseudo-Pascal en C3A.\\
+
+Pour la représentation des tableaux en C3A nous avons alors décidé d'utiliser un seul tableau d'entier, donc lors de la traduction on ajoute une variable globales "L\_TAB\#" qui contient l'indice de la première case libre. Cette variable sera modifier lors de la traduction de la réservation de l'espace mémoire pour un tableau.\\
+
+Nous avons aussi décidé que toutes variables utilisé dans le code C3A n'étant pas dans l'environnement global sont des variables locales de la partie du code évalué.\\
+
+Et lors de l'appelle d'une fonction le paramètre de destination d'un Call en C3A correspond à la valeur retourné par la fonction, et pour une procédure la valeur de la variable de destination prendra 0.
 
 \subsection{Interprétation du C3A}
-aa
+Pour l'interprétation du C3A nous avons créé nos propes structures et fonctions, que nous avons enregistrer dans les fichiers interp.h et interp.c.\\
 
+Nous avons alors définit une strutures "pile" qui correspond à une pile d'appel, contenant :
+\begin{itemize}
+\item la ligne du Call en C3A nommé "c"
+\item l'environnement locale utilisé avant l'appel nommé "l"
+\item l'élément suivant dans la pile nommé "next"
+\end{itemize}
+\bigskip
+
+Puis nous avons créé plusieurs fonctions afin d'utiliser les structures qui sont appellé lors de l'interprétation du C3A.\\
+
+\newpage
+\section{Mode d'emploi}
+Liste des fichiers nécessaires pour créer l'exécutable sont :
+\begin{itemize}
+\item ppascal.l (analyseur lexical)
+\item ppascal.l (analyseur syntaxique)
+\item tree\_abs.h et tree\_abs.c
+\item interp.h et interp.c
+\item translate.h et translate.c
+\end{itemize}
+\bigskip
+
+Pour créer l'exécutable il suffit de taper la commande "make" dans le dossier contenant les fichiers nécessaires pour créer l'exécutable, cela va alors créer l'exécutable "ppascal".
+
+Ensuite pour utiliser l'exécutable il suffit de lui donner sur l'entrée standard le code Pseudo-Pascal, par exemple "./ppascal < EXEMPLE/pex12.pp".
+
+Lors de l'exécution on va alors afficher sur le terminal la liste des variables globales, la liste des fonctions et le code principal.
+
+Ensuite il va afficher sur le terminal le résultat de l'analyse sémantique, c'est-à-dire soit qu'elle a réussi, soit la liste des erreurs et provoquer l'arrêt du programme.
+
+Puis on va afficher l'environnement global de l'interprétation du code Pseudo-Pascal.
+
+Pour la traduction du code en C3A le programme va alors créer un fichier "TRANSLATE\_C3A.c3a" contenant la traduction du code.
+
+Enfin on va afficher sur le terminal l'environnement global de l'interprétation du C3A.
 \end{document}

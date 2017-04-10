@@ -303,7 +303,7 @@ list translate_pp_tab(tree tab, int depth, int* et, int* ct, int* va, tree lfunc
 }
 
 list translate_pp_call(tree call, int* et, int* ct, int* va, tree lfunc){
-  char *name, *res, *arg2;
+  char *name, *res = NULL, *arg2;
   list l = alloc_list();
   l->first = NULL;
   l->end = NULL;
