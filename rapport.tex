@@ -20,59 +20,56 @@
 \section{Description du projet}
 Le projet de compilation consiste à analyser le langage Pseudo-Pascal, à l’interpréter, le traduire en C3A et à écrire un interprète de C3A.\\
 
-Dans un premier nous devions faire l'analyse syntaxique du langage Pseudo-Pascal afin de récupérer
+Dans un premier temps nous devions faire l'analyse syntaxique du langage Pseudo-Pascal afin de récupérer :
 \begin{itemize}
 \item les variables globales
-\item la liste des fonctions et procédures avec leurs argurments, le type éventuel du résultat et leurs corps
+\item la liste des fonctions et procédures avec leurs argurments, le type éventuel du résultat et leur corps
 \item le programme principal
 \end{itemize}
 
-Si le texte données en entrées contient du texte non reconnue par la grammaire du Pseudo-Pascal, nous devions afficher un message d'erreur et arréter la compilation du programme.\\
+Si le texte donné en entré n'est pas reconnu par la grammaire du Pseudo-Pascal, nous devions afficher un message d'erreur et arrêter la compilation du programme.\\
 
 Ensuite, après l'analyse syntaxique nous devions faire l'analyse sémantique afin de vérifier que :
 \begin{itemize}
 \item toute expression est typable
 \item toute affectation a des membres de même type
-\item tout appel de fonction ou procédure à des paramètre d'appel qui ont la même suite de types qui la suite des paramètre de la fonction ou procédure lors de sa déclaration
+\item tout appel de fonction ou procédure a des paramètres d'appel qui ont la même suite de types que la suite des paramètres de la fonction ou procédure lors de sa déclaration
 \end{itemize}
 
-Si lors de l'analyse il existe des erreur de sémantique, nous devions afficher un message d'erreur et ne pas continuer la compilation du programme.\\
+Si lors de l'analyse il existe des erreurs de sémantique, nous devions afficher un message d'erreur et ne pas continuer la compilation du programme puis, 
+une fois les analyses terminées, nous devions interpréter le code Pseudo-Pascal, et afficher la valeur des variables globales une fois l'interprétation finie.
+Enfin, une fois cela fait, nous devions transformer le code Pseudo-Pascal en C3A, puis l'interpréter et afficher la valeur des variables globales.\\
 
-Puis, une fois les analyses terminés, nous devions interpréter le code Pseudo-Pascal, et afficher la valeur des variables globales une fois l'interprétation finis.\\
+Il nous était aussi possible de traduire le C3A vers le Y86, et un "ramasse-miettes" de l'interpréteur du code Pseudo-Pascal afin d'optimiser la mémoire pour la gestion des tableaux.\\
 
-Enfin, une fois cela fait, nous devions transformer le code Pseudo-Pascal en C3A, puis l'interpréter et afficher la valeurs des variables globales.\\
-
-Il nous etait aussi possible de traduire le C3A vers le Y86, et un "ramasse-miettes" de l'interpréteur du code Pseudo-Pascal afin d'optimiser la mémoire pour la gestions des tableaux.\\
-
-Pour réaliser ce projet nous devions être par groupe d'au plus 4 étudiants, et nous avions environ 3 semaines pour le faire.\\
-
-Nous avons utilisé GIT comme gestionnaire de version afin de pouvoir travailler efficacemment en groupe.
+Pour réaliser ce projet nous devions être par groupes d'au plus 4 étudiants, et nous avions environ 3 semaines pour le faire.
+Enfin, nous avons choisi d'utiliser GIT comme gestionnaire de version afin de pouvoir travailler efficacement en groupe.
 
 \newpage
 
-\section{Description des différents point à réaliser lors de ce projet}
+\section{Description des différents points à réaliser lors de ce projet}
 \subsection{Analyse syntaxique}
-Pour stocker la programme lors de l'analyse syntaxique nous avons créer nos propres structures et fonctions, que nous avons enregistrer dans les fichiers tree\_abs.h et tree\_abs.c.\\
+Pour stocker le programme lors de l'analyse syntaxique nous avons créé nos propres structures et fonctions, que nous avons enregistrées dans les fichiers tree\_abs.h et tree\_abs.c.\\
 
-Nous avons décider de tous stocker dans un seul arbre, pour cela nous avons créé plusieurs strutures :\\
+Nous avons décidé de tout stocker dans un seul arbre, pour cela nous avons créé plusieurs structures :\\
 
 Afin de définir le type d'une expression nous avons créé la structure "type\_exp" contenant :
 \begin{itemize}
-\item la profondeur nommé "depth" qui contient le nombre d'élément contenue dans le tableaux suivant
-\item le tableaux nommé "type" qui contient le type d'une expression, utilise une enumération "type\_expression" \{T\_array, T\_bool, T\_int\}
+\item la profondeur nommée "depth" qui contient le nombre d'éléments contenus dans le tableau suivant
+\item le tableau nommé "type" qui contient le type d'une expression, utilise une énumération "type\_expression" \{T\_array, T\_bool, T\_int\}
 \end{itemize}
 Par exemble :
 \begin{itemize}
 \item pour un entier "depth" vaut 1 et "type" vaut \{T\_int\}
-\item pour un tableaux de tableaux de boolean "depth" vaut 3 et "type" vaut \{T\_array, T\_array, T\_bool\}
+\item pour un tableau de tableaux de booleens, "depth" vaut 3 et "type" vaut \{T\_array, T\_array, T\_bool\}
 \end{itemize}
 \bigskip
 
 Pour stocker l'arbre nous avons créé la structure "tree" contenant :
 \begin{itemize}
-\item une définition nommé "def" qui permet de savoir à quoi vont correspondre ces fils et quel opration nous devrons faire dessus, utilise une énumération "define" contenant la liste définitions possible
+\item une définition "def" qui permet de savoir à quoi vont correspondre ses fils et quelles opérations nous devrons faire dessus, le champ utilise une énumération "define" contenant la liste définitions possibles
 \item un type nommé "type" qui permet de définir le type de l'expression
-\item le nombre de fils nommé "nb\_sons" qui permet de savoir combien il à de fils
+\item le nombre de fils nommé "nb\_sons" qui permet de savoir combien il a de fils
 \item un tableaux de fils nommé "sons" qui contient les fils
 \end{itemize}
 \bigskip
@@ -84,86 +81,86 @@ Pour contenir la définition d'une variable nous avons créé la structure "var"
 \end{itemize}
 \bigskip
 
-Pour contenir les valeurs constante dans le programme nous avons créé la structure "val" contenant :
+Pour contenir les valeurs constantes dans le programme nous avons créé la structure "val" contenant :
 \begin{itemize}
-\item une définition nommé "def" qui permet des savoir si c'est un nombre, une variable ou un boolean (true ou false) et qui utilise une énumation "type\_value" \{Bool, Int, Var\}
-\item un paramètre nommé "param" qui contient sous la forme d'entier soit le nombre ou le boolean, ou sous la forme d'une chaine de caractère le nom de la variable
+\item une définition nommée "def" qui permet des savoir si c'est un nombre, une variable ou un boolean (true ou false) et qui utilise une énumération "type\_value" \{Bool, Int, Var\}
+\item un paramètre nommé "param" qui contient sous la forme d'entier le nombre ou le boolean, ou sous la forme d'une chaine de caractères le nom de la variable
 \end{itemize}
 \bigskip
 
-Ensuite nous avons créé plusieurs fonctions afin d'utiliser ces structure qui sont appellé lors de l'analyse syntaxique afin de récupéré toutes les informations. 
+Ensuite nous avons créé plusieurs fonctions afin d'utiliser ces structure qui sont appellées lors de l'analyse syntaxique afin de récupérer toutes les informations. 
 
 \subsection{Analyse sémantique}
-Pour l'analyse sémantique nous avons créé des fonctions fonctions dans tree\_abs.c qui permettent de faire l'analyse du code.
+Pour l'analyse sémantique nous avons créé des fonctions dans tree\_abs.c qui permettent de faire l'analyse du code.
 
-Pour cela une fois l'analyse syntaxique finis il suffit d'appeller la fonction "analyze" avec en paramètre l'arbre générer par l'analyse syntaxique et qui retourne le nombre d'erreur sémantique dans le programme.
+Pour cela une fois l'analyse syntaxique finie il suffit d'appeller la fonction "analyze" avec en paramètre l'arbre généré par l'analyse syntaxique et qui retourne le nombre d'erreurs sémantiques dans le programme.
 
-Si lors de l'analyse il y a une ou plusieurs erreur alors nous affichons de quel type d'erreur dont il s'agit et l'opérations qui provoque cette erreur.
+Si lors de l'analyse il y a une ou plusieurs erreur alors nous affichons de quel type d'erreur il s'agit et l'opération qui provoque cette erreur.
 
 \subsection{Interprétation du Pseudo-Pascal}
-Pour l'interpréteur du code en Pseudo-Pascal nous avons créé nos propes structures et fonctions, que nous avons enregistrer dans les fichiers interp.h et interp.c.\\
+Pour l'interpréteur du code en Pseudo-Pascal nous avons créé nos propres structures et fonctions, que nous avons enregistrées dans les fichiers interp.h et interp.c.\\
 
-Nous avons alors définit une structure "env" pour contenir les variables, elle contient :
+Nous avons alors défini une structure "env" pour contenir les variables, elle contient :
 \begin{itemize}
 \item le nom de la variable nommé "name"
 \item le type de la variable nommé "type"
-\item la valeur nommé "value"
+\item la valeur nommée "value"
 \item l'élément suivant nommé "next"
 \end{itemize}
 \bigskip
 
-Et pour stocker les valeurs des tableaux nous avons créér la structure "heap" contenant :
+Et pour stocker les valeurs des tableaux nous avons créé la structure "heap" contenant :
 \begin{itemize}
-\item les adresses nommé "address" sous la forme d'un tableau d'entier
-\item la taille des tableaux nommé "size" sous la forme d'un tableau d'entier
-\item les cellule de chaque tableaux nommé "memory" sous la forme d'une tableau d'entier
+\item les adresses nommées "address" sous la forme d'un tableau d'entiers
+\item la taille des tableaux nommé "size" sous la forme d'un tableau d'entiers
+\item les cellules de chaque tableau nommé "memory" sous la forme d'une tableau d'entiers
 \item la première case disponible du tableau des adresses nommé "last\_address"
-\item la première case disponible du tableau des des cellule nommé "last\_memory"
-\item le nombre d'erreur d'accèes mémoire nommé "error"
+\item la première case disponible du tableau des cellule nommé "last\_memory"
+\item le nombre d'erreurs d'accès mémoire nommé "error"
 \end{itemize}
 \bigskip
 
-Puis nous avons créé plusieurs fonctions afin d'utiliser ces structures qui sont appellé lors de l'interprétaion du code Pseudo-Pascal.
+Puis nous avons créé plusieurs fonctions afin d'utiliser ces structures qui sont appellées lors de l'interprétation du code Pseudo-Pascal.
 
 \subsection{Traduction en C3A}
-Pour la traduction du code en Pseudo-Pascal en C3A nous avons créé nos propes structures et fonctions, que nous avons enregistrer dans les fichiers translate.h et translate.c.\\
+Pour la traduction du code en Pseudo-Pascal en C3A nous avons créé nos propres structures et fonctions, que nous avons enregistrées dans les fichiers translate.h et translate.c.\\
 
-Nous avons alors définit une strutures "cell" qui correspond à une ligne de code C3A, contenant :
+Nous avons alors défini une structure "cell" qui correspond à une ligne de code C3A, contenant :
 \begin{itemize}
-\item l'étiquette nommé "name"
-\item l'opération C3A nommé "def" qui utilise une énumération "c3a" contenant la liste des opérations C3A
+\item l'étiquette nommée "name"
+\item l'opération C3A nommée "def" qui utilise une énumération "c3a" contenant la liste des opérations C3A
 \item l'argument 1 nommé "arg1"
 \item l'argument 2 nommé "arg2"
-\item la destination nommé "res"
+\item la destination nommée "res"
 \end{itemize}
 \bigskip
 
 Et une structure "list" qui contient la première et la dernière cellule C3A de la liste.\\
 
-Puis nous avons créé plusieurs fonctions afin d'utiliser ces structures qui sont appellé lors de la traduction du code Pseudo-Pascal en C3A.\\
+Puis nous avons créé plusieurs fonctions afin d'utiliser ces structures qui sont appellées lors de la traduction du code Pseudo-Pascal en C3A.\\
 
-Pour la représentation des tableaux en C3A nous avons alors décidé d'utiliser un seul tableau d'entier, donc lors de la traduction on ajoute une variable globales "L\_TAB\#" qui contient l'indice de la première case libre. Cette variable sera modifier lors de la traduction de la réservation de l'espace mémoire pour un tableau.\\
+Pour la représentation des tableaux en C3A nous avons alors décidé d'utiliser un seul tableau d'entiers, donc lors de la traduction on ajoute une variable global "L\_TAB\#" qui contient l'indice de la première case libre. Cette variable sera modifiée lors de la traduction de la réservation de l'espace mémoire pour un tableau.\\
 
-Nous avons aussi décidé que toutes variables utilisé dans le code C3A n'étant pas dans l'environnement global sont des variables locales de la partie du code évalué.\\
+Nous avons aussi décidé que toute variable utilisée dans le code C3A n'étant pas dans l'environnement global est une variable locale de la partie du code évaluée.\\
 
-Et lors de l'appelle d'une fonction le paramètre de destination d'un Call en C3A correspond à la valeur retourné par la fonction, et pour une procédure la valeur de la variable de destination prendra 0.
+Lors de l'appel d'une fonction le paramètre de destination d'un Call en C3A correspond à la valeur retournée par la fonction, alors que pour une procédure la valeur de la variable de destination prendra 0.
 
 \subsection{Interprétation du C3A}
-Pour l'interprétation du C3A nous avons créé nos propes structures et fonctions, que nous avons enregistrer dans les fichiers interp.h et interp.c.\\
+Pour l'interprétation du C3A nous avons créé nos propres structures et fonctions, que nous avons enregistrées dans les fichiers interp.h et interp.c.\\
 
-Nous avons alors définit une strutures "pile" qui correspond à une pile d'appel, contenant :
+Nous avons alors défini une struture "pile" qui correspond à une pile d'appel, contenant :
 \begin{itemize}
-\item la ligne du Call en C3A nommé "c"
-\item l'environnement locale utilisé avant l'appel nommé "l"
+\item la ligne du Call en C3A nommée "c"
+\item l'environnement local utilisé avant l'appel nommé "l"
 \item l'élément suivant dans la pile nommé "next"
 \end{itemize}
 \bigskip
 
-Puis nous avons créé plusieurs fonctions afin d'utiliser les structures qui sont appellé lors de l'interprétation du C3A.\\
+Puis nous avons créé plusieurs fonctions afin d'utiliser les structures qui sont appellées lors de l'interprétation du C3A.\\
 
 \newpage
 \section{Mode d'emploi}
-Liste des fichiers nécessaires pour créer l'exécutable sont :
+La liste des fichiers nécessaires pour créer l'exécutable contient :
 \begin{itemize}
 \item ppascal.l (analyseur lexical)
 \item ppascal.l (analyseur syntaxique)
@@ -175,15 +172,13 @@ Liste des fichiers nécessaires pour créer l'exécutable sont :
 
 Pour créer l'exécutable il suffit de taper la commande "make" dans le dossier contenant les fichiers nécessaires pour créer l'exécutable, cela va alors créer l'exécutable "ppascal".
 
-Ensuite pour utiliser l'exécutable il suffit de lui donner sur l'entrée standard le code Pseudo-Pascal, par exemple "./ppascal < EXEMPLE/pex12.pp".
+Ensuite pour utiliser l'utiliser il suffit de lui donner sur l'entrée standard le code Pseudo-Pascal, par exemple "./ppascal < EXEMPLE/pex12.pp".
 
 Lors de l'exécution on va alors afficher sur le terminal la liste des variables globales, la liste des fonctions et le code principal.
 
-Ensuite il va afficher sur le terminal le résultat de l'analyse sémantique, c'est-à-dire soit qu'elle a réussi, soit la liste des erreurs et provoquer l'arrêt du programme.
+Ensuite il va afficher sur le terminal le résultat de l'analyse sémantique, c'est-à-dire soit que celle-ci a réussie, soit la liste des erreurs et provoquer l'arrêt du programme.
 
-Puis on va afficher l'environnement global de l'interprétation du code Pseudo-Pascal.
+Enfin on va afficher l'environnement global de l'interprétation du code Pseudo-Pascal.
 
-Pour la traduction du code en C3A le programme va alors créer un fichier "TRANSLATE\_C3A.c3a" contenant la traduction du code.
-
-Enfin on va afficher sur le terminal l'environnement global de l'interprétation du C3A.
+Pour la traduction du code en C3A le programme va alors créer un fichier "TRANSLATE\_C3A.c3a" contenant la traduction du code, pour finalement afficher sur le terminal l'environnement global de l'interprétation du C3A.
 \end{document}
