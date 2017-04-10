@@ -67,11 +67,6 @@ extern list translate_pp_call(tree call, int* et, int* ct, int* va, tree lfunc);
 //fonction qui retourne la fonction corespondant au nom dans la liste des focntions
 extern tree argt_function_pp(tree lfunc, char* name);
 
-//fonctions utilisé pour traduire le C3A en Y86
-
-//extern list translate_c3a(list l);
-//extern list translate_operation_c3a(cell c, env e);
-
 //fonction qui permet l'affichage d'une liste
 extern void display_list(list l);
 

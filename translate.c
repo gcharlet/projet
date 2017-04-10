@@ -339,15 +339,6 @@ tree argt_function_pp(tree lfunc, char* name){
   return v->argt;
 }
 
-/*list translate_c3a(list l){
-  cell c = l->first;
-  return NULL;
-}
-
-list translate_operation_c3a(cell c, env e){
-  return NULL;
-  }*/
-
 char* list_c3a[] = {"", "Pl", "Mo", "Mu", "And", "Or", "Lt", "Ind", "Not", "Af", "Afc", "AfInd", "Sk", "Jp", "Jz", "St", "Param", "Call", "Ret"};
 
 void display_list(list l){
